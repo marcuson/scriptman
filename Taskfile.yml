@@ -1,0 +1,44 @@
+version: "3"
+
+dotenv: ["_build/build.env"]
+
+tasks:
+  build-debug:
+    desc: Build with debug symbols for the current platform.
+    summary: |
+      Build with debug symbols for the current platform.
+    cmds:
+      - go build -gcflags "all=-N -l" -o ./_build/debug_bin ./cmd/scriptman
+    sources:
+      - cmd/**/*.go
+      - internal/**/*.go
+    generates:
+      - _build/debug_bin
+
+  clean:
+    desc: Clean temp artifacts.
+    summary: |
+      Clean temp artifacts.
+    cmds:
+      - go run ./scripts/clean
+
+  run:
+    desc: Run app on current platform.
+    summary: |
+      Run app on current platform. By default, it will run with a version of "0.0.0";
+      you can override this by providing a SCRIPTMAN_VERSION var (e.g. task run SCRIPTMAN_VERSION=1.0.0)
+      or by setting the version via `task set-version`
+    vars:
+      SCRIPTMAN_VERSION: '{{.SCRIPTMAN_VERSION | default "0.0.0"}}'
+    cmds:
+      - >
+        go run -ldflags
+        "-X marcuson/scriptman/internal/config.Version={{.SCRIPTMAN_VERSION}}"
+        ./cmd/scriptman --help
+
+  test:
+    desc: Run all tests.
+    summary: |
+      Run all tests.
+    cmds:
+      - go test ./...
