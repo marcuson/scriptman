@@ -41,6 +41,11 @@ func listCmd(cCtx *cli.Context) error {
 	return nil
 }
 
+func runCmd(cCtx *cli.Context) error {
+	idOrPath := cCtx.Args().Get(0)
+	return script.Run(idOrPath)
+}
+
 func getCmds() []*cli.Command {
 	cmds := []*cli.Command{
 		{
@@ -64,6 +69,14 @@ func getCmds() []*cli.Command {
 			Usage:   "List installed scripts.",
 			Aliases: []string{"ls"},
 			Action:  listCmd,
+		},
+		{
+			Name: "run",
+			Usage: "Run a script previsouly installed (given its unique <scriptId>) or " +
+				"directly from filesystem (given its path).",
+			Args:      true,
+			ArgsUsage: "<script id or path>",
+			Action:    runCmd,
 		},
 	}
 
