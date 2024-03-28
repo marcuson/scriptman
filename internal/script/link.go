@@ -30,3 +30,16 @@ func Link(scriptId string) error {
 
 	return nil
 }
+
+func Unlink(scriptId string) error {
+	linkPath, _ := xdg.DataFile(config.BIN_HOME_DEFAULT + "/" + scriptId)
+
+	if pathext.Exists(linkPath) {
+		err := os.Remove(linkPath)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

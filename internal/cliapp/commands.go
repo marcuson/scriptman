@@ -17,6 +17,17 @@ func installCmd(cCtx *cli.Context) error {
 	return script.Link(meta.ScriptId())
 }
 
+func uninstallCmd(cCtx *cli.Context) error {
+	id := cCtx.Args().Get(0)
+	err := script.Unlink(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = script.Uninstall(id)
+	return err
+}
+
 func getCmds() []*cli.Command {
 	cmds := []*cli.Command{
 		{
@@ -26,6 +37,14 @@ func getCmds() []*cli.Command {
 			Args:      true,
 			ArgsUsage: "<path>",
 			Action:    installCmd,
+		},
+		{
+			Name:      "uninstall",
+			Aliases:   []string{"u"},
+			Usage:     "Uninstall a previously installed script (given its id).",
+			Args:      true,
+			ArgsUsage: "<id>",
+			Action:    uninstallCmd,
 		},
 	}
 
