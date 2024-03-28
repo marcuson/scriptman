@@ -28,6 +28,19 @@ func uninstallCmd(cCtx *cli.Context) error {
 	return err
 }
 
+func listCmd(cCtx *cli.Context) error {
+	scriptsMeta, err := script.GetInstalledList()
+	if err != nil {
+		return err
+	}
+
+	for _, m := range scriptsMeta {
+		fmt.Println(m.ScriptId())
+	}
+
+	return nil
+}
+
 func getCmds() []*cli.Command {
 	cmds := []*cli.Command{
 		{
@@ -45,6 +58,12 @@ func getCmds() []*cli.Command {
 			Args:      true,
 			ArgsUsage: "<id>",
 			Action:    uninstallCmd,
+		},
+		{
+			Name:    "list",
+			Usage:   "List installed scripts.",
+			Aliases: []string{"ls"},
+			Action:  listCmd,
 		},
 	}
 
