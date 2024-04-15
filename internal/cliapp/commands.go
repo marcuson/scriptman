@@ -50,6 +50,11 @@ func runCmd(cCtx *cli.Context) error {
 	return script.Run(idOrPath, sections...)
 }
 
+func getargsCmd(cCtx *cli.Context) error {
+	idOrPath := cCtx.Args().Get(0)
+	out := cCtx.Path("out")
+	// FIXME: If not passed, apply default
+	return script.Getargs(idOrPath, out)
 }
 
 func getCmds() []*cli.Command {
@@ -90,6 +95,21 @@ func getCmds() []*cli.Command {
 			Args:      true,
 			ArgsUsage: "<script id or path>",
 			Action:    runCmd,
+		},
+		{
+			Name: "getargs",
+			Usage: "Create an '.env' file to be used later to run the script in a pre-configured " +
+				"manner.",
+			Flags: []cli.Flag{
+				&cli.PathFlag{
+					Name:    "out",
+					Aliases: []string{"o"},
+					Usage:   `Output .env file.`,
+				},
+			},
+			Args:      true,
+			ArgsUsage: "<script id or path>",
+			Action:    getargsCmd,
 		},
 	}
 
