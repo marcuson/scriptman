@@ -2,7 +2,9 @@ package cliapp
 
 import (
 	"fmt"
+	"marcuson/scriptman/internal/config"
 	"marcuson/scriptman/internal/script"
+	"marcuson/scriptman/internal/utils/codeext"
 
 	"github.com/urfave/cli/v2"
 )
@@ -43,7 +45,11 @@ func listCmd(cCtx *cli.Context) error {
 
 func runCmd(cCtx *cli.Context) error {
 	idOrPath := cCtx.Args().Get(0)
-	return script.Run(idOrPath)
+	sections := cCtx.StringSlice("section")
+	sections = codeext.Tern(len(sections) > 0, sections, []string{config.RUN_SECTION})
+	return script.Run(idOrPath, sections...)
+}
+
 }
 
 func getCmds() []*cli.Command {
@@ -74,6 +80,13 @@ func getCmds() []*cli.Command {
 			Name: "run",
 			Usage: "Run a script previsouly installed (given its unique <scriptId>) or " +
 				"directly from filesystem (given its path).",
+			Flags: []cli.Flag{
+				&cli.StringSliceFlag{
+					Name:    "section",
+					Aliases: []string{"s"},
+					Usage:   `Sections to run, default to "run"`,
+				},
+			},
 			Args:      true,
 			ArgsUsage: "<script id or path>",
 			Action:    runCmd,

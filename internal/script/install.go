@@ -6,13 +6,14 @@ import (
 	"path/filepath"
 
 	"marcuson/scriptman/internal/config"
+	"marcuson/scriptman/internal/script/internal/scriptmeta"
 	"marcuson/scriptman/internal/utils/fsext"
 	"marcuson/scriptman/internal/utils/pathext"
 
 	"github.com/adrg/xdg"
 )
 
-func Install(uri string) (*ScriptMetadata, error) {
+func Install(uri string) (*scriptmeta.ScriptMetadata, error) {
 	if !pathext.Exists(uri) {
 		return nil, fmt.Errorf("script not found at '%s'", uri)
 	}
@@ -33,8 +34,8 @@ func Install(uri string) (*ScriptMetadata, error) {
 	return meta, nil
 }
 
-func Uninstall(id string) (*ScriptMetadata, error) {
-	found, scriptPath := GetScriptPathFromId(id)
+func Uninstall(id string) (*scriptmeta.ScriptMetadata, error) {
+	found, scriptPath := scriptmeta.GetScriptPathFromId(id)
 	if !found {
 		return nil, fmt.Errorf("unable to find script with id '%s' for uninstall", id)
 	}
