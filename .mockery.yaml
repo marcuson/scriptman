@@ -1,0 +1,14 @@
+with-expecter: True
+inpackage: True
+filename: "mock_{{.InterfaceName}}.go"
+dir: "{{.InterfaceDir}}"
+mockname: "Mock{{.InterfaceName}}"
+outpkg: "{{.PackageName}}"
+
+packages:
+  marcuson/scriptman/internal/script/internal/processor/rewriter:
+    interfaces:
+      Rewriter:
+  marcuson/scriptman/internal/script/internal/processor:
+    interfaces:
+      Processor:

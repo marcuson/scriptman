@@ -36,6 +36,13 @@ tasks:
         "-X marcuson/scriptman/internal/config.Version={{.SCRIPTMAN_VERSION}}"
         ./cmd/scriptman --help
 
+  generate:
+    desc: Automatically generate support files based on directives.
+    summary: |
+      Automatically generate support files based on directives.
+    cmds:
+      - docker run -v "{{.ROOT_DIR}}":/src -w /src vektra/mockery --all
+
   test:
     desc: Run all tests.
     summary: |
