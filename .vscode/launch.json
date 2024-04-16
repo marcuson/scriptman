@@ -11,12 +11,15 @@
       "mode": "auto",
       "program": "${workspaceRoot}/cmd/scriptman",
       "console": "integratedTerminal",
+      "cwd": "${workspaceRoot}",
       "args": ["--help"] // Change with args you want to debug, check some examples below
       // "args": ["install", "${workspaceRoot}/examples/bash/example.sh"]
-      // "args": ["uninstall", "marctest-example"]
+      // "args": ["uninstall", "marcex-exbash"]
       // "args": ["ls"]
-      // "args": ["run", "marcuson-test/example"]
+      // "args": ["run", "marcex-exbash"]
+      // "args": ["run", "${workspaceRoot}/examples/bash/example.sh"]
       // "args": ["run", "${workspaceRoot}/examples/bash/example_legacy.sh"]
+      // "args": ["getargs", "${workspaceRoot}/examples/bash/example.sh"]
     }
   ]
 }
