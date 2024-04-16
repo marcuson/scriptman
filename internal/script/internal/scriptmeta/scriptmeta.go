@@ -1,28 +1,56 @@
-package script
+package scriptmeta
 
 import (
 	"marcuson/scriptman/internal/config"
-	"marcuson/scriptman/internal/utils/codeext"
-	"marcuson/scriptman/internal/utils/pathext"
-	"path"
+	"marcuson/scriptman/internal/interpreter"
 	"path/filepath"
 	"strings"
 
 	"github.com/adrg/xdg"
 )
 
+type ScriptSection struct {
+	LineStart int32
+	LineEnd   int32
+}
+
+func NewScriptSection() *ScriptSection {
+	sec := ScriptSection{
+		LineStart: -1,
+		LineEnd:   -1,
+	}
+
+	return &sec
+}
+
 type ScriptMetadata struct {
 	Namespace   string
 	Name        string
 	Interpreter string
 	Ext         string
+
+	Sections map[string]*ScriptSection
 }
 
-func (obj *ScriptMetadata) FillMissingMetadata(scriptPath string) {
-	obj.Ext = path.Ext(scriptPath)
+func NewScriptMetadata() *ScriptMetadata {
+	var meta ScriptMetadata
+	meta.Sections = make(map[string]*ScriptSection)
+	return &meta
+}
 
-	codeext.SetIf(&obj.Namespace, obj.Namespace == "", "_nons_")
-	codeext.SetIf(&obj.Name, obj.Name == "", pathext.Name(scriptPath))
+func (obj *ScriptMetadata) InterpreterInfo() interpreter.InterpreterInfo {
+	return interpreter.Interpreters[obj.Interpreter]
+}
+
+func (obj *ScriptMetadata) GetOrAddSection(section string) *ScriptSection {
+	sec, found := obj.Sections[section]
+	if found {
+		return sec
+	}
+
+	newSec := NewScriptSection()
+	obj.Sections[section] = newSec
+	return newSec
 }
 
 func (obj *ScriptMetadata) ScriptId() string {

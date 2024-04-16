@@ -3,6 +3,7 @@ package script
 import (
 	"cmp"
 	"marcuson/scriptman/internal/config"
+	"marcuson/scriptman/internal/script/internal/scriptmeta"
 	"marcuson/scriptman/internal/utils/pathext"
 	"marcuson/scriptman/internal/utils/slicesext"
 	"path/filepath"
@@ -12,7 +13,7 @@ import (
 	"github.com/adrg/xdg"
 )
 
-func GetInstalledList() ([]*ScriptMetadata, error) {
+func GetInstalledList() ([]*scriptmeta.ScriptMetadata, error) {
 	scriptsHome, _ := xdg.DataFile(config.SCRIPT_HOME_DEFAULT)
 	scriptFilepaths, err := filepath.Glob(scriptsHome + "/*/*/*.*")
 	if err != nil {
@@ -30,7 +31,7 @@ func GetInstalledList() ([]*ScriptMetadata, error) {
 		fileNameNoExt := pathext.Name(fileName)
 		return dirName != fileNameNoExt
 	})
-	scriptsMeta := []*ScriptMetadata{}
+	scriptsMeta := []*scriptmeta.ScriptMetadata{}
 
 	for _, fPath := range scriptFilepaths {
 		meta, err := ParseMetadata(fPath)
@@ -40,7 +41,7 @@ func GetInstalledList() ([]*ScriptMetadata, error) {
 		scriptsMeta = append(scriptsMeta, meta)
 	}
 
-	scriptMetaComp := func(a, b *ScriptMetadata) int {
+	scriptMetaComp := func(a, b *scriptmeta.ScriptMetadata) int {
 		return cmp.Compare(a.ScriptId(), b.ScriptId())
 	}
 
