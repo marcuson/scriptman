@@ -15,6 +15,7 @@ import (
 func TestRewriterPassthroughOk(t *testing.T) {
 	outbuf := new(bytes.Buffer)
 	mockRew := rewriter.NewMockRewriter(t)
+	mockRew.EXPECT().RewriteBeforeAll().Return("", nil)
 	mockRew.EXPECT().
 		RewriteLine(mock.AnythingOfType("*scan.LineScript")).
 		RunAndReturn(func(line *scan.LineScript) (string, error) {
@@ -53,6 +54,7 @@ func TestRewriterPassthroughOk(t *testing.T) {
 func TestRewriterTransformerOk(t *testing.T) {
 	outbuf := new(bytes.Buffer)
 	mockRew := rewriter.NewMockRewriter(t)
+	mockRew.EXPECT().RewriteBeforeAll().Return("", nil)
 	mockRew.EXPECT().
 		RewriteLine(mock.AnythingOfType("*scan.LineScript")).
 		RunAndReturn(func(line *scan.LineScript) (string, error) {
@@ -89,6 +91,7 @@ func TestRewriterTransformerOk(t *testing.T) {
 func TestRewriterSkipOk(t *testing.T) {
 	outbuf := new(bytes.Buffer)
 	mockRew := rewriter.NewMockRewriter(t)
+	mockRew.EXPECT().RewriteBeforeAll().Return("", nil)
 	mockRew.EXPECT().
 		RewriteLine(mock.AnythingOfType("*scan.LineScript")).
 		RunAndReturn(func(line *scan.LineScript) (string, error) {
@@ -126,6 +129,7 @@ func TestRewriterPassthroughAndSkipperOk(t *testing.T) {
 	outbuf := new(bytes.Buffer)
 	i := 0
 	mockRew := rewriter.NewMockRewriter(t)
+	mockRew.EXPECT().RewriteBeforeAll().Return("", nil)
 	mockRew.EXPECT().
 		RewriteLine(mock.AnythingOfType("*scan.LineScript")).
 		RunAndReturn(func(line *scan.LineScript) (string, error) {

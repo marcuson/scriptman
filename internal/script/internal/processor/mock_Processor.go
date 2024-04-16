@@ -21,6 +21,51 @@ func (_m *MockProcessor) EXPECT() *MockProcessor_Expecter {
 	return &MockProcessor_Expecter{mock: &_m.Mock}
 }
 
+// IsProcessCompletedEarly provides a mock function with given fields:
+func (_m *MockProcessor) IsProcessCompletedEarly() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsProcessCompletedEarly")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// MockProcessor_IsProcessCompletedEarly_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsProcessCompletedEarly'
+type MockProcessor_IsProcessCompletedEarly_Call struct {
+	*mock.Call
+}
+
+// IsProcessCompletedEarly is a helper method to define mock.On call
+func (_e *MockProcessor_Expecter) IsProcessCompletedEarly() *MockProcessor_IsProcessCompletedEarly_Call {
+	return &MockProcessor_IsProcessCompletedEarly_Call{Call: _e.mock.On("IsProcessCompletedEarly")}
+}
+
+func (_c *MockProcessor_IsProcessCompletedEarly_Call) Run(run func()) *MockProcessor_IsProcessCompletedEarly_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockProcessor_IsProcessCompletedEarly_Call) Return(_a0 bool) *MockProcessor_IsProcessCompletedEarly_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockProcessor_IsProcessCompletedEarly_Call) RunAndReturn(run func() bool) *MockProcessor_IsProcessCompletedEarly_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ProcessEnd provides a mock function with given fields:
 func (_m *MockProcessor) ProcessEnd() error {
 	ret := _m.Called()

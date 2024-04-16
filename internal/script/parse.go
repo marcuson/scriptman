@@ -22,3 +22,19 @@ func ParseMetadata(path string) (*scriptmeta.ScriptMetadata, error) {
 
 	return metaProcessor.Metadata(), nil
 }
+
+func ParseInterpreter(path string) (string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	interProcessor := processor.NewInterpreterProcessor()
+	handler := handle.NewHandler(file, interProcessor)
+	if err = handler.Handle(); err != nil {
+		return "", err
+	}
+
+	return interProcessor.Interpreter(), nil
+}

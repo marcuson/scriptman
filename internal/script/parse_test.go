@@ -52,3 +52,10 @@ func TestParseOkWithRun(t *testing.T) {
 	verify.Map(meta.Sections).Len(1).Require(t)
 	verify.Map(meta.Sections).ContainPair("run", &scriptmeta.ScriptSection{LineStart: 5, LineEnd: 7})
 }
+
+func TestParseInterpreterOnlyOk(t *testing.T) {
+	inter, err := ParseInterpreter(testdir + "/meta_ok_001.sh")
+
+	verify.NoError(err).Require(t)
+	verify.String(inter).Equal("bash").Assert(t)
+}

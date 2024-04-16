@@ -86,3 +86,7 @@ func (obj *MetadataProcessor) parseMetadata(line *scan.LineScript) error {
 
 	return nil
 }
+
+func (obj *MetadataProcessor) IsProcessCompletedEarly() bool {
+	return false
+}

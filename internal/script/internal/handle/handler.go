@@ -4,6 +4,7 @@ import (
 	"io"
 	"marcuson/scriptman/internal/script/internal/processor"
 	"marcuson/scriptman/internal/script/internal/scan"
+	"marcuson/scriptman/internal/utils/slicesext"
 )
 
 type Handler struct {
@@ -34,6 +35,16 @@ func (obj *Handler) Handle() error {
 			if err := p.ProcessLine(obj.scanner.Line()); err != nil {
 				return err
 			}
+		}
+
+		shouldExitEarly := slicesext.Reduce(
+			obj.processors,
+			func(acc bool, p processor.Processor) bool {
+				return acc && p.IsProcessCompletedEarly()
+			},
+			true)
+		if shouldExitEarly {
+			return nil
 		}
 	}
 

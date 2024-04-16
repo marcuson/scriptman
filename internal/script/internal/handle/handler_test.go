@@ -21,6 +21,7 @@ func TestHandlerPassthroughOk(t *testing.T) {
 	defer file.Close()
 
 	mockProc := processor.NewMockProcessor(t)
+	mockProc.EXPECT().IsProcessCompletedEarly().Return(false)
 	mockProc.EXPECT().ProcessStart().Return(nil).Times(1)
 	mockProc.EXPECT().ProcessEnd().Return(nil).Times(1)
 	mockProc.EXPECT().

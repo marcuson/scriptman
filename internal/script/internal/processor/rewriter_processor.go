@@ -30,8 +30,8 @@ func (obj *RewriterProcessor) rewriteString(str string) error {
 }
 
 func (obj *RewriterProcessor) processBeforeAll() error {
-	for _, p := range obj.rewriters {
-		newline, err := p.RewriteBeforeAll()
+	for _, r := range obj.rewriters {
+		newline, err := r.RewriteBeforeAll()
 
 		if err != nil {
 			return err
@@ -84,4 +84,8 @@ func (obj *RewriterProcessor) ProcessEnd() error {
 	}
 
 	return nil
+}
+
+func (obj *RewriterProcessor) IsProcessCompletedEarly() bool {
+	return false
 }

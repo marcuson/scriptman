@@ -8,4 +8,5 @@ type Processor interface {
 	ProcessStart() error
 	ProcessLine(line *scan.LineScript) error
 	ProcessEnd() error
+	IsProcessCompletedEarly() bool
 }
