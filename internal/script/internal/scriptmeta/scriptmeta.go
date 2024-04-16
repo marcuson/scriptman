@@ -2,6 +2,7 @@ package scriptmeta
 
 import (
 	"marcuson/scriptman/internal/config"
+	"marcuson/scriptman/internal/interpreter"
 	"path/filepath"
 	"strings"
 
@@ -35,6 +36,10 @@ func NewScriptMetadata() *ScriptMetadata {
 	var meta ScriptMetadata
 	meta.Sections = make(map[string]*ScriptSection)
 	return &meta
+}
+
+func (obj *ScriptMetadata) InterpreterInfo() interpreter.InterpreterInfo {
+	return interpreter.Interpreters[obj.Interpreter]
 }
 
 func (obj *ScriptMetadata) GetOrAddSection(section string) *ScriptSection {

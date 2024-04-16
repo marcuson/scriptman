@@ -5,24 +5,24 @@ import (
 	"fmt"
 	"io"
 	"marcuson/scriptman/internal/config"
+	"marcuson/scriptman/internal/interpreter"
 	"marcuson/scriptman/internal/script/internal/processor/rewriter"
 	"marcuson/scriptman/internal/script/internal/run"
+	"marcuson/scriptman/internal/script/internal/scriptmeta"
 	"marcuson/scriptman/internal/utils/codeext"
+	"marcuson/scriptman/internal/utils/pathext"
 	"os"
 	"slices"
 	"strings"
 )
 
 var (
-	getargsE0Tokens = []string{
+	getargsTokens = []string{
 		"__e0:s__",
 		"__e0:e__",
-	}
-	getargsE1Tokens = []string{
 		"__e1:s__",
 		"__e1:e__",
 	}
-	getargsTokens = append(getargsE0Tokens, getargsE1Tokens...)
 )
 
 type getargsStdout struct {
@@ -109,13 +109,15 @@ func (obj *getargsStdout) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func envToMap(envStr string) map[string]string {
+func envToMap(envStr string, ctx *run.RunCtx) map[string]string {
 	envLines := slices.DeleteFunc(
 		strings.Split(envStr, "\n"), func(s string) bool { return s == "" })
+
 	m := make(map[string]string, len(envLines))
 	for _, l := range envLines {
 		kv := strings.Split(l, "=")
-		if kv[0] == "_" { // FIXME: Bash only
+
+		if ctx.Meta.InterpreterInfo().GetargsFilterOutEnvVar(kv[0]) {
 			continue
 		}
 		m[kv[0]] = kv[1]
@@ -158,8 +160,8 @@ func getargsPostRun(ctx *run.RunCtx) error {
 	e0Str := gaWriter.e0.String()
 	e1Str := gaWriter.e1.String()
 
-	e0Map := envToMap(e0Str)
-	e1Map := envToMap(e1Str)
+	e0Map := envToMap(e0Str, ctx)
+	e1Map := envToMap(e1Str, ctx)
 
 	mapDiff := envDiff(e1Map, e0Map)
 	ctx.Props["getargs_diff"] = mapDiff
@@ -168,14 +170,29 @@ func getargsPostRun(ctx *run.RunCtx) error {
 }
 
 func Getargs(idOrPath string, out string) error {
+	instFound, scriptPath := scriptmeta.GetScriptPathFromId(idOrPath)
+	if !instFound {
+		scriptPath = idOrPath
+	}
+	if !pathext.Exists(scriptPath) {
+		return fmt.Errorf("cannot find script '%s' by id or path", idOrPath)
+	}
+
+	inter, err := ParseInterpreter(scriptPath)
+	if err != nil {
+		return err
+	}
+
+	interInfo, isInterSupported := interpreter.GetInterpreterInfo(inter)
+	if !isInterSupported {
+		return fmt.Errorf("unsupported interpreter %s", inter)
+	}
+
 	getargsAugmenter := rewriter.NewGetargsInjectorRewriter()
-	// FIXME: This is valid only for bash!!!
-	getargsAugmenter.SetIntro("echo " + getargsE0Tokens[0] + "\n" +
-		"set 2>/dev/null | while read a; do [[ $a == *=* ]] || break; echo $a; done\n" +
-		"echo " + getargsE0Tokens[1] + "\n")
-	getargsAugmenter.SetOutro("echo " + getargsE1Tokens[0] + "\n" +
-		"set 2>/dev/null | while read a; do [[ $a == *=* ]] || break; echo $a; done\n" +
-		"echo " + getargsE1Tokens[1] + "\n")
+
+	getargsAugmenter.SetIntro(interInfo.GetargsIntro(getargsTokens))
+	getargsAugmenter.SetOutro(interInfo.GetargsOutro(getargsTokens))
+
 	secRewriter := rewriter.NewSecRewriter(config.GETARGS_SECTION)
 
 	hooks := run.RunHooks{

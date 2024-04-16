@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"marcuson/scriptman/internal/interpreter"
 	"marcuson/scriptman/internal/script/internal/handle"
 	"marcuson/scriptman/internal/script/internal/processor"
 	"marcuson/scriptman/internal/script/internal/processor/rewriter"
@@ -27,16 +28,9 @@ type RunCtx struct {
 	TmpScriptPath     string
 	NormTmpScriptPath string
 	InterpreterCmd    *exec.Cmd
+	Rewriters         []rewriter.Rewriter
 
 	Props map[string]interface{}
-}
-
-func prepCmdBash(ctx *RunCtx) {
-	ctx.InterpreterCmd.Args =
-		append(ctx.InterpreterCmd.Args, execext.StrToArgs(ctx.NormTmpScriptPath)...)
-	ctx.InterpreterCmd.Stderr = os.Stderr
-	ctx.InterpreterCmd.Stdout = os.Stdout
-	ctx.InterpreterCmd.Stdin = os.Stdin
 }
 
 func getTempScriptPath(scriptPath string) string {
@@ -87,8 +81,9 @@ func setupRun(scriptPath string, rewriters ...rewriter.Rewriter) (*RunCtx, error
 
 	ctx.Meta = metaProc.Metadata()
 
-	ctx.NormTmpScriptPath = getNormalizedScriptPath(ctx.TmpScriptPath, ctx.Meta.Interpreter)
+	ctx.NormTmpScriptPath = ctx.Meta.InterpreterInfo().GetNormalizedScriptPath(ctx.TmpScriptPath)
 	ctx.InterpreterCmd = exec.Command(ctx.Meta.Interpreter)
+	ctx.Rewriters = rewriters
 
 	return ctx, nil
 }
@@ -120,12 +115,15 @@ func RunWithHooks(idOrPath string, hooks RunHooks, rewriters ...rewriter.Rewrite
 	}
 	defer teardownRun(ctx)
 
-	switch ctx.Meta.Interpreter {
-	case "bash":
-		prepCmdBash(ctx)
-	default:
+	if !interpreter.IsSupported(ctx.Meta.Interpreter) {
 		return nil, fmt.Errorf("unsupported interpreter %s", ctx.Meta.Interpreter)
 	}
+
+	ctx.InterpreterCmd.Args =
+		append(ctx.InterpreterCmd.Args, execext.StrToArgs(ctx.NormTmpScriptPath)...)
+	ctx.InterpreterCmd.Stderr = os.Stderr
+	ctx.InterpreterCmd.Stdout = os.Stdout
+	ctx.InterpreterCmd.Stdin = os.Stdin
 
 	if err = callHookIfPresent(hooks.PreRun, ctx); err != nil {
 		return nil, err

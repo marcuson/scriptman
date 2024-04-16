@@ -53,7 +53,9 @@ func runCmd(cCtx *cli.Context) error {
 func getargsCmd(cCtx *cli.Context) error {
 	idOrPath := cCtx.Args().Get(0)
 	out := cCtx.Path("out")
-	// FIXME: If not passed, apply default
+	if out == "" {
+		out = "./getargs.env"
+	}
 	return script.Getargs(idOrPath, out)
 }
 
