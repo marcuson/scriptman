@@ -106,6 +106,35 @@ func TestMetadataSectionOk(t *testing.T) {
 		ContainPair("run", &scriptmeta.ScriptSection{LineStart: 6, LineEnd: 8})
 }
 
+func TestMetadataAssetOk(t *testing.T) {
+	processor := NewMetadataProcessor("")
+
+	err := processor.ProcessStart()
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:       "# @scriptman asset info.txt",
+		LineIndex:  0,
+		IsMetadata: true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:       `# @scriptman asset assets/**`,
+		LineIndex:  1,
+		IsMetadata: true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessEnd()
+	verify.NoError(err).Require(t)
+
+	meta := processor.Metadata()
+	verify.Slice(meta.Assets).Len(2).Require(t)
+	verify.Slice(meta.Assets).Contain("info.txt")
+	verify.Slice(meta.Assets).Contain("assets/**")
+}
+
 func TestMetadataFillMissingOk(t *testing.T) {
 	scriptPath := testdir + "/meta_ok_001.sh"
 	processor := NewMetadataProcessor(scriptPath)

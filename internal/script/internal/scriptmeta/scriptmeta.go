@@ -30,11 +30,13 @@ type ScriptMetadata struct {
 	Ext         string
 
 	Sections map[string]*ScriptSection
+	Assets   []string
 }
 
 func NewScriptMetadata() *ScriptMetadata {
 	var meta ScriptMetadata
 	meta.Sections = make(map[string]*ScriptSection)
+	meta.Assets = []string{}
 	return &meta
 }
 

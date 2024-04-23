@@ -80,6 +80,8 @@ func (obj *MetadataProcessor) parseMetadata(line *scan.LineScript) error {
 		obj._meta.GetOrAddSection(metaValue).LineStart = line.LineIndex
 	case "sec:end":
 		obj._meta.GetOrAddSection(metaValue).LineEnd = line.LineIndex
+	case "asset":
+		obj._meta.Assets = append(obj._meta.Assets, metaValue)
 	default:
 		return fmt.Errorf("unknown meta key: %s", metaKey)
 	}

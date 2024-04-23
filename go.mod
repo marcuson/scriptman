@@ -4,6 +4,7 @@ go 1.22
 
 require (
 	github.com/adrg/xdg v0.4.0
+	github.com/bmatcuk/doublestar/v4 v4.6.1
 	github.com/fluentassert/verify v1.1.0
 	github.com/stretchr/testify v1.8.1
 	github.com/urfave/cli/v2 v2.27.1

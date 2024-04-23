@@ -1,0 +1,1 @@
+# @scriptman asset assets/**

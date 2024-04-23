@@ -59,3 +59,11 @@ func TestParseInterpreterOnlyOk(t *testing.T) {
 	verify.NoError(err).Require(t)
 	verify.String(inter).Equal("bash").Assert(t)
 }
+
+func TestParseAssetsOnlyOk(t *testing.T) {
+	meta, err := ParseMetadata(testdir + "/assets_ok_001.sh")
+
+	verify.NoError(err).Require(t)
+	verify.Slice(meta.Assets).Len(1).Assert(t)
+	verify.Slice(meta.Assets).Contain("assets/**").Assert(t)
+}

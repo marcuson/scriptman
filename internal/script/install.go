@@ -3,7 +3,7 @@ package script
 import (
 	"fmt"
 	"os"
-	"path/filepath"
+	"path"
 
 	"marcuson/scriptman/internal/config"
 	"marcuson/scriptman/internal/script/internal/scriptmeta"
@@ -11,24 +11,48 @@ import (
 	"marcuson/scriptman/internal/utils/pathext"
 
 	"github.com/adrg/xdg"
+	"github.com/bmatcuk/doublestar/v4"
 )
 
 func Install(uri string) (*scriptmeta.ScriptMetadata, error) {
-	if !pathext.Exists(uri) {
-		return nil, fmt.Errorf("script not found at '%s'", uri)
+	installFromLocalPath := uri
+	installFromLocalDir := path.Dir(installFromLocalPath)
+	if !pathext.Exists(installFromLocalPath) {
+		return nil, fmt.Errorf("script not found at '%s'", installFromLocalPath)
 	}
 
-	meta, err := ParseMetadata(uri)
+	meta, err := ParseMetadata(installFromLocalPath)
 	if err != nil {
 		return nil, err
 	}
 
-	installPath, _ := xdg.DataFile(config.SCRIPT_HOME_DEFAULT + "/" +
-		meta.InstallScriptIdDir() + "/" + meta.Name + meta.Ext)
-
-	_, err = fsext.CopyFile(uri, installPath)
+	installDir, err := xdg.DataFile(config.SCRIPT_HOME_DEFAULT + "/" +
+		meta.InstallScriptIdDir())
 	if err != nil {
 		return nil, err
+	}
+	installPath := installDir + "/" + meta.Name + meta.Ext
+
+	_, err = fsext.CopyFile(installFromLocalPath, installPath)
+	if err != nil {
+		return nil, err
+	}
+
+	installFromDirFSys := os.DirFS(installFromLocalDir)
+	for _, assetGlob := range meta.Assets {
+		files, err := doublestar.Glob(installFromDirFSys, assetGlob, doublestar.WithFilesOnly())
+		if err != nil {
+			return nil, err
+		}
+
+		for _, f := range files {
+			fInstallFromPath := installFromLocalDir + "/" + f
+			fInstallPath := installDir + "/" + f
+			_, err = fsext.CopyFile(fInstallFromPath, fInstallPath)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return meta, nil
