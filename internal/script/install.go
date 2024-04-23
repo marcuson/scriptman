@@ -34,24 +34,18 @@ func Install(uri string) (*scriptmeta.ScriptMetadata, error) {
 	return meta, nil
 }
 
-func Uninstall(id string) (*scriptmeta.ScriptMetadata, error) {
+func Uninstall(id string) error {
 	found, scriptPath := scriptmeta.GetScriptPathFromId(id)
 	if !found {
-		return nil, fmt.Errorf("unable to find script with id '%s' for uninstall", id)
+		return fmt.Errorf("unable to find script with id '%s' for uninstall", id)
 	}
 
-	meta, err := ParseMetadata(scriptPath)
+	installDir := path.Dir(scriptPath)
+
+	err := os.RemoveAll(installDir)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	iDir, _ := xdg.DataFile(config.SCRIPT_HOME_DEFAULT + "/" + meta.InstallScriptIdDir())
-	installDir := filepath.ToSlash(iDir)
-
-	err = os.RemoveAll(installDir)
-	if err != nil {
-		return nil, err
-	}
-
-	return meta, nil
+	return nil
 }

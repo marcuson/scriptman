@@ -65,7 +65,7 @@ func GetScriptPathFromId(id string) (bool, string) {
 	idSplit := strings.Split(id, "-")
 	ns := idSplit[0]
 	name := strings.Join(idSplit[1:], "-")
-	iDir, _ := xdg.DataFile(config.SCRIPT_HOME_DEFAULT + "/" + ns + "/" + name)
+	iDir, _ := xdg.SearchDataFile(config.SCRIPT_HOME_DEFAULT + "/" + ns + "/" + name)
 	installDir := filepath.ToSlash(iDir)
 
 	files, _ := filepath.Glob(installDir + "/" + name + ".*")

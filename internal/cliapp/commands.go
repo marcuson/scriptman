@@ -26,7 +26,7 @@ func uninstallCmd(cCtx *cli.Context) error {
 		return err
 	}
 
-	_, err = script.Uninstall(id)
+	err = script.Uninstall(id)
 	return err
 }
 
