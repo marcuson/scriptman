@@ -1,6 +1,9 @@
 package interpreter
 
-import "text/template"
+import (
+	"slices"
+	"text/template"
+)
 
 type bashInterpreter struct {
 	getargsIntroTpl *template.Template
@@ -33,7 +36,8 @@ func newBashInterpreter() bashInterpreter {
 var bashInter bashInterpreter = newBashInterpreter()
 
 func (obj *bashInterpreter) GetargsFilterOutEnvVar(varName string) bool {
-	return varName == "_"
+	filterOutVars := []string{"_", "LINES", "COLUMNS"}
+	return slices.Contains(filterOutVars, varName)
 }
 
 func (obj *bashInterpreter) GetargsIntro(tokens []string) string {
