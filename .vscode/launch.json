@@ -13,6 +13,7 @@
       "console": "integratedTerminal",
       "cwd": "${workspaceRoot}",
       "args": ["--help"] // Change with args you want to debug, check some examples below
+      // "args": ["config"]
       // "args": ["install", "${workspaceRoot}/examples/bash/example.sh"]
       // "args": ["uninstall", "marcex-exbash"]
       // "args": ["ls"]

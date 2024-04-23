@@ -59,8 +59,18 @@ func getargsCmd(cCtx *cli.Context) error {
 	return script.Getargs(idOrPath, out)
 }
 
+func configCmd(cCtx *cli.Context) error {
+	return config.PrintConfig()
+}
+
 func getCmds() []*cli.Command {
 	cmds := []*cli.Command{
+		{
+			Name:    "config",
+			Aliases: []string{"c"},
+			Usage:   "Show scriptman config.",
+			Action:  configCmd,
+		},
 		{
 			Name:      "install",
 			Aliases:   []string{"i"},
