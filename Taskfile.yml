@@ -8,7 +8,11 @@ tasks:
     summary: |
       Build with debug symbols for the current platform.
     cmds:
-      - go build -gcflags "all=-N -l" -o ./_build/debug_bin ./cmd/scriptman
+      - >
+        go build
+        -gcflags="all=-N -l"
+        -ldflags="-X marcuson/scriptman/internal/cliapp.Version={{.SCRIPTMAN_VERSION}}"
+        -o ./_build/debug_bin ./cmd/scriptman
     sources:
       - cmd/**/*.go
       - internal/**/*.go
@@ -25,16 +29,19 @@ tasks:
   run:
     desc: Run app on current platform.
     summary: |
-      Run app on current platform. By default, it will run with a version of "0.0.0";
-      you can override this by providing a SCRIPTMAN_VERSION var (e.g. task run SCRIPTMAN_VERSION=1.0.0)
-      or by setting the version via `task set-version`
+      Run app on current platform.
     vars:
-      SCRIPTMAN_VERSION: '{{.SCRIPTMAN_VERSION | default "0.0.0"}}'
+      SCRIPTMAN_VERSION: '{{.SCRIPTMAN_VERSION | default "X.Y.Z"}}'
+    cmds:
+      - go run ./cmd/scriptman --help
+
+  set-version:
+    desc: Set version for next build.
+    summary: |
+      Set version for next build.
     cmds:
       - >
-        go run -ldflags
-        "-X marcuson/scriptman/internal/config.Version={{.SCRIPTMAN_VERSION}}"
-        ./cmd/scriptman --help
+        go run ./scripts/set-version {{.VER}}
 
   generate:
     desc: Automatically generate support files based on directives.
