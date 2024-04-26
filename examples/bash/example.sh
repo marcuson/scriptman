@@ -14,7 +14,7 @@ echo "getargs called, NEWENV set to $NEWENV"
 echo "common code between"
 
 # @scriptman sec:start run
-echo "run called"
+echo "run called, NEWENV is: $NEWENV"
 # @scriptman sec:end run
 
 echo "common code after"

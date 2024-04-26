@@ -51,3 +51,7 @@ func (obj *bashInterpreter) GetargsOutro(tokens []string) string {
 		"set 2>/dev/null | while read a; do [[ $a == *=* ]] || break; echo $a; done\n" +
 		"echo " + tokens[3] + "\n"
 }
+
+func (obj *bashInterpreter) GetEnvVarInjectCode(key string, value string) string {
+	return "export " + key + "=" + value
+}

@@ -20,6 +20,12 @@
       // "args": ["run", "marcex-exbash"]
       // "args": ["run", "${workspaceRoot}/examples/bash/example.sh"]
       // "args": ["run", "${workspaceRoot}/examples/bash/example_legacy.sh"]
+      // "args": [
+      //   "run",
+      //   "-e",
+      //   "${workspaceRoot}/examples/bash/example_dotenv.env",
+      //   "${workspaceRoot}/examples/bash/example_dotenv.sh"
+      // ]
       // "args": ["getargs", "${workspaceRoot}/examples/bash/example.sh"]
     }
   ]

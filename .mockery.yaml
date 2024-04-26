@@ -6,6 +6,15 @@ mockname: "Mock{{.InterfaceName}}"
 outpkg: "{{.PackageName}}"
 
 packages:
+  # io:
+  #   config:
+  #     inpackage: False
+  #     filename: "mock_{{.InterfaceName}}.go"
+  #     dir: "mocks/{{.PackagePath}}"
+  #     mockname: "Mock{{.InterfaceName}}"
+  #     outpkg: "{{.PackageName}}"
+  #   interfaces:
+  #     Reader:
   marcuson/scriptman/internal/script/internal/processor/rewriter:
     interfaces:
       Rewriter:

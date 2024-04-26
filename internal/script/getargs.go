@@ -8,9 +8,8 @@ import (
 	"marcuson/scriptman/internal/interpreter"
 	"marcuson/scriptman/internal/script/internal/processor/rewriter"
 	"marcuson/scriptman/internal/script/internal/run"
-	"marcuson/scriptman/internal/script/internal/scriptmeta"
+	"marcuson/scriptman/internal/script/internal/scriptutils"
 	"marcuson/scriptman/internal/utils/codeext"
-	"marcuson/scriptman/internal/utils/pathext"
 	"os"
 	"slices"
 	"strings"
@@ -170,11 +169,8 @@ func getargsPostRun(ctx *run.RunCtx) error {
 }
 
 func Getargs(idOrPath string, out string) error {
-	instFound, scriptPath := scriptmeta.GetScriptPathFromId(idOrPath)
-	if !instFound {
-		scriptPath = idOrPath
-	}
-	if !pathext.Exists(scriptPath) {
+	found, scriptPath := scriptutils.FindScriptPath(idOrPath)
+	if !found {
 		return fmt.Errorf("cannot find script '%s' by id or path", idOrPath)
 	}
 

@@ -47,7 +47,9 @@ func runCmd(cCtx *cli.Context) error {
 	idOrPath := cCtx.Args().Get(0)
 	sections := cCtx.StringSlice("section")
 	sections = codeext.Tern(len(sections) > 0, sections, []string{config.RUN_SECTION})
-	return script.Run(idOrPath, sections...)
+	opts := script.NewRunOpts(idOrPath)
+	opts.EnvFilePath = cCtx.Path("env")
+	return script.Run(opts, sections...)
 }
 
 func getargsCmd(cCtx *cli.Context) error {
@@ -102,6 +104,11 @@ func getCmds() []*cli.Command {
 					Name:    "section",
 					Aliases: []string{"s"},
 					Usage:   `Sections to run, default to "run"`,
+				},
+				&cli.PathFlag{
+					Name:    "env",
+					Aliases: []string{"e"},
+					Usage:   `.env file to load before script execution.`,
 				},
 			},
 			Args:      true,

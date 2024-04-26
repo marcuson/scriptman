@@ -8,7 +8,6 @@ import (
 	"marcuson/scriptman/internal/script/internal/processor/rewriter"
 	"marcuson/scriptman/internal/script/internal/scriptmeta"
 	"marcuson/scriptman/internal/utils/execext"
-	"marcuson/scriptman/internal/utils/pathext"
 	"os"
 	"os/exec"
 	"path"
@@ -100,16 +99,8 @@ func callHookIfPresent(hook RunHookFn, ctx *RunCtx) error {
 	return hook(ctx)
 }
 
-func RunWithHooks(idOrPath string, hooks RunHooks, rewriters ...rewriter.Rewriter) (*RunCtx, error) {
-	instFound, scriptPath := scriptmeta.GetScriptPathFromId(idOrPath)
-	if !instFound {
-		scriptPath = idOrPath
-	}
-	if !pathext.Exists(scriptPath) {
-		return nil, fmt.Errorf("cannot find script '%s' by id or path", idOrPath)
-	}
-
-	ctx, err := setupRun(scriptPath, rewriters...)
+func RunWithHooks(path string, hooks RunHooks, rewriters ...rewriter.Rewriter) (*RunCtx, error) {
+	ctx, err := setupRun(path, rewriters...)
 	if err != nil {
 		return nil, err
 	}

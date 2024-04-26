@@ -5,6 +5,7 @@ type InterpreterInfo interface {
 	GetargsFilterOutEnvVar(varName string) bool
 	GetargsIntro(tokens []string) string
 	GetargsOutro(tokens []string) string
+	GetEnvVarInjectCode(key string, value string) string
 }
 
 var (
