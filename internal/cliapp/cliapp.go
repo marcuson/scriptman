@@ -23,8 +23,8 @@ func InitCli() *cli.App {
 	`
 
 	app = &cli.App{
-		Name:    "scriptman",
-		Usage:   "Cross-platform script manager written in Go.",
+		Name:    "sman",
+		Usage:   "Scriptman: a cross-platform script manager written in Go.",
 		Version: Version,
 	}
 

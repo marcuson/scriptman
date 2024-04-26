@@ -1,4 +1,4 @@
-# SOH CLI
+# Scriptman - a cross-platform script manager
 
 ## Dev requirements
 

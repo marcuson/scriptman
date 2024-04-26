@@ -19,6 +19,46 @@ tasks:
     generates:
       - _build/debug_bin
 
+  build-linux:
+    desc: Production build for Linux.
+    summary: |
+      Production build for Linux.
+    cmds:
+      - >
+        GOOS=linux GOARCH=amd64 go build
+        -gcflags="all=-N -l"
+        -ldflags="-X marcuson/scriptman/internal/cliapp.Version={{.SCRIPTMAN_VERSION}} -s -w"
+        -o ./_build/linux/sman ./cmd/scriptman
+    sources:
+      - cmd/**/*.go
+      - internal/**/*.go
+    generates:
+      - _build/linux/sman
+
+  build-windows:
+    desc: Production build for Windows.
+    summary: |
+      Production build for Windows.
+    cmds:
+      - >
+        GOOS=windows GOARCH=amd64 go build
+        -gcflags="all=-N -l"
+        -ldflags="-X marcuson/scriptman/internal/cliapp.Version={{.SCRIPTMAN_VERSION}} -s -w"
+        -o ./_build/windows/sman ./cmd/scriptman
+    sources:
+      - cmd/**/*.go
+      - internal/**/*.go
+    generates:
+      - _build/windows/sman
+
+  build-all:
+    desc: Production build for all supported platforms.
+    summary: |
+      Production build for all supported platforms.
+    cmds:
+      - task: build-linux
+      - task: build-windows
+
   clean:
     desc: Clean temp artifacts.
     summary: |
