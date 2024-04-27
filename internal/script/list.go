@@ -14,7 +14,7 @@ import (
 )
 
 func GetInstalledList() ([]*scriptmeta.ScriptMetadata, error) {
-	scriptsHome, _ := xdg.DataFile(config.SCRIPT_HOME_DEFAULT)
+	scriptsHome, _ := xdg.DataFile(config.SCRIPT_HOME)
 	scriptFilepaths, err := filepath.Glob(scriptsHome + "/*/*/*.*")
 	if err != nil {
 		return nil, err

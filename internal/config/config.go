@@ -12,12 +12,12 @@ func PrintConfig() error {
 		return err
 	}
 
-	absScriptHome, err := xdg.DataFile(SCRIPT_HOME_DEFAULT)
+	absScriptHome, err := xdg.DataFile(SCRIPT_HOME)
 	if err != nil {
 		return err
 	}
 
-	linkedBinDir, err := xdg.DataFile(BIN_HOME_DEFAULT)
+	linkedBinDir, err := xdg.DataFile(BIN_HOME)
 	if err != nil {
 		return err
 	}

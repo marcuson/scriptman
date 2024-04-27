@@ -16,7 +16,7 @@ func Link(scriptId string) error {
 		return fmt.Errorf("unable to find script with id '%s' for link", scriptId)
 	}
 
-	linkPath, _ := xdg.DataFile(config.BIN_HOME_DEFAULT + "/" + scriptId)
+	linkPath, _ := xdg.DataFile(config.BIN_HOME + "/" + scriptId)
 	if pathext.Exists(linkPath) {
 		err := os.Remove(linkPath)
 		if err != nil {
@@ -33,7 +33,7 @@ func Link(scriptId string) error {
 }
 
 func Unlink(scriptId string) error {
-	linkPath, _ := xdg.DataFile(config.BIN_HOME_DEFAULT + "/" + scriptId)
+	linkPath, _ := xdg.DataFile(config.BIN_HOME + "/" + scriptId)
 
 	if pathext.Exists(linkPath) {
 		err := os.Remove(linkPath)
