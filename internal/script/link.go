@@ -25,22 +25,5 @@ func Link(scriptId string) error {
 	}
 
 	err := os.Symlink(scriptPath, linkPath)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func Unlink(scriptId string) error {
-	linkPath, _ := xdg.DataFile(config.BIN_HOME + "/" + scriptId)
-
-	if pathext.Exists(linkPath) {
-		err := os.Remove(linkPath)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return err
 }

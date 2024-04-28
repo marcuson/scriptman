@@ -3,216 +3,216 @@ package script
 import (
 	"fmt"
 	"net/url"
-	"os"
-	"path"
-	"path/filepath"
+	"strings"
 
 	"marcuson/scriptman/internal/config"
 	"marcuson/scriptman/internal/script/internal/scriptmeta"
-	"marcuson/scriptman/internal/utils/fsext"
-	"marcuson/scriptman/internal/utils/httpext"
+	"marcuson/scriptman/internal/utils/codeext"
 	"marcuson/scriptman/internal/utils/pathext"
 
 	"github.com/adrg/xdg"
-	"github.com/bmatcuk/doublestar/v4"
 )
 
-type installCtx struct {
+const (
+	FS_INSTALL_PROTOCOL   = "fs"
+	HTTP_INSTALL_PROTOCOL = "http"
+	GIT_INSTALL_PROTOCOL  = "git"
+)
+
+type scriptInstallCtx struct {
 	RawUri    string
 	ScriptUri *url.URL
 
-	InstallFromLocalPath string
-	Meta                 *scriptmeta.ScriptMetadata
-	InstallScriptPath    string
-	InstallScriptDir     string
+	InstallFromLocalFile  string
+	Meta                  *scriptmeta.ScriptMetadata
+	InstallTargetMainFile string
+	InstallTargetDir      string
 }
 
-func newInstallCtx(uri string) *installCtx {
-	ctx := &installCtx{
+func newScriptInstallCtx(uri string) (*scriptInstallCtx, error) {
+	ctx := &scriptInstallCtx{
 		RawUri: uri,
 	}
-	return ctx
-}
 
-func (obj *installCtx) prepareInstallation() error {
-	uriParsed, err := url.Parse(obj.RawUri)
+	uriParsed, err := url.Parse(ctx.RawUri)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if uriParsed.Scheme == "" {
 		uriParsed.Scheme = "file"
 	}
 
-	obj.ScriptUri = uriParsed
+	ctx.ScriptUri = uriParsed
 
-	switch obj.ScriptUri.Scheme {
-	case "file":
-		obj.InstallFromLocalPath = obj.RawUri
-	case "http":
-	case "https":
-		tmpInstallPath, err := xdg.DataFile(config.TMP_ROOT_DIR + "/" +
-			path.Base(obj.ScriptUri.Path))
-		if err != nil {
-			return err
-		}
-
-		err = httpext.DownloadFile(obj.RawUri, tmpInstallPath)
-		if err != nil {
-			return err
-		}
-
-		obj.InstallFromLocalPath = tmpInstallPath
-	}
-
-	return nil
+	return ctx, nil
 }
 
-func installMainFile(ctx *installCtx) error {
-	installDir, err := xdg.DataFile(config.SCRIPT_HOME + "/" +
-		ctx.Meta.InstallScriptIdDir())
-	if err != nil {
-		return err
-	}
-	ctx.InstallScriptDir = installDir
-	ctx.InstallScriptPath = installDir + "/" + ctx.Meta.Name + ctx.Meta.Ext
-
-	switch ctx.ScriptUri.Scheme {
-	case "file":
-		_, err = fsext.CopyFile(ctx.InstallFromLocalPath, ctx.InstallScriptPath)
-		if err != nil {
-			return err
-		}
-	case "http":
-	case "https":
-		err = os.MkdirAll(ctx.InstallScriptDir, 0777) // FIXME: perm
-		if err != nil {
-			return err
-		}
-
-		err = os.Rename(ctx.InstallFromLocalPath, ctx.InstallScriptPath)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+type scriptInstaller interface {
+	prepare(ctx *scriptInstallCtx) error
+	installMainFile(ctx *scriptInstallCtx) error
 }
 
-func installAsset(assetUri string, ctx *installCtx) error {
-	absUri := assetUri
+type assetInstallCtx struct {
+	RawUri            string
+	AssetUri          *url.URL
+	InstallTargetFile string
+
+	ScriptInstallCtx *scriptInstallCtx
+}
+
+func newAssetInstallCtx(assetUri string, scriptCtx *scriptInstallCtx) (*assetInstallCtx, error) {
+	ctx := &assetInstallCtx{
+		RawUri:           assetUri,
+		ScriptInstallCtx: scriptCtx,
+	}
+
 	uriParsed, err := url.Parse(assetUri)
-	if err != nil {
-		return err
-	}
-
-	if uriParsed.Scheme == "" {
-		absUri = path.Dir(ctx.RawUri) + "/" + assetUri // FIXME wrong concat
-		uriParsed, err = url.Parse(absUri)
-		if err != nil {
-			return err
-		}
-	}
-
-	if uriParsed.Scheme == "" {
-		uriParsed.Scheme = ctx.ScriptUri.Scheme
-	}
-
-	switch uriParsed.Scheme {
-	case "file":
-		assetGlob, err := filepath.Rel(path.Dir(ctx.InstallFromLocalPath), uriParsed.Path)
-		if err != nil {
-			return err
-		}
-		err = installAssetFromLocal(assetGlob, ctx)
-		if err != nil {
-			return err
-		}
-	case "http":
-	case "https":
-		assetRelPath, err := filepath.Rel(path.Dir(ctx.RawUri), absUri)
-		if err != nil {
-			return err
-		}
-
-		err = os.MkdirAll(path.Dir(ctx.InstallScriptDir+"/"+assetRelPath), 0777) // FIXME: perm
-		if err != nil {
-			return err
-		}
-		err = httpext.DownloadFile(absUri, ctx.InstallScriptDir+"/"+assetRelPath)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func installAssetFromLocal(assetGlob string, ctx *installCtx) error {
-	installFromLocalDir := path.Dir(ctx.InstallFromLocalPath)
-	installFromDirFSys := os.DirFS(installFromLocalDir)
-
-	files, err := doublestar.Glob(installFromDirFSys, assetGlob, doublestar.WithFilesOnly())
-	if err != nil {
-		return err
-	}
-
-	for _, f := range files {
-		fInstallFromPath := installFromLocalDir + "/" + f
-		fInstallPath := ctx.InstallScriptDir + "/" + f
-		_, err = fsext.CopyFile(fInstallFromPath, fInstallPath)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func Install(uri string) (*scriptmeta.ScriptMetadata, error) {
-	ctx := newInstallCtx(uri)
-	err := ctx.prepareInstallation()
 	if err != nil {
 		return nil, err
 	}
 
-	if !pathext.Exists(ctx.InstallFromLocalPath) {
-		return nil, fmt.Errorf("script not found at '%s'", ctx.InstallFromLocalPath)
+	ctx.AssetUri = uriParsed
+
+	if ctx.IsRelative() {
+		ctx.InstallTargetFile = ctx.ScriptInstallCtx.InstallTargetDir + "/" + uriParsed.Path
+	} else {
+		ctx.InstallTargetFile = ctx.ScriptInstallCtx.InstallTargetDir + "/" + pathext.Name(uriParsed.Path)
 	}
 
-	meta, err := ParseMetadata(ctx.InstallFromLocalPath)
+	return ctx, nil
+}
+
+func (obj *assetInstallCtx) IsRelative() bool {
+	return obj.AssetUri.Scheme == ""
+}
+
+type assetInstaller interface {
+	installAsset(ctx *assetInstallCtx) error
+}
+
+var (
+	assetInstallers = make(map[string]assetInstaller)
+)
+
+func getInstallProtocol(uriScheme string) string {
+	switch uriScheme {
+	case "":
+	case "file":
+		return FS_INSTALL_PROTOCOL
+	case "http":
+		return HTTP_INSTALL_PROTOCOL
+	case "https":
+		if strings.HasSuffix(uriScheme, ".git") {
+			return GIT_INSTALL_PROTOCOL
+		}
+
+		return HTTP_INSTALL_PROTOCOL
+	case "git":
+		return GIT_INSTALL_PROTOCOL
+	}
+
+	return ""
+}
+
+func getScriptInstaller(ctx *scriptInstallCtx) (scriptInstaller, error) {
+	scriptInstallProtocol := getInstallProtocol(ctx.ScriptUri.Scheme)
+	var installer scriptInstaller
+	switch scriptInstallProtocol {
+	case FS_INSTALL_PROTOCOL:
+		installer = &fsScriptInstaller{}
+	case HTTP_INSTALL_PROTOCOL:
+		installer = &httpScriptInstaller{}
+	case GIT_INSTALL_PROTOCOL:
+		installer = &gitScriptInstaller{}
+	default:
+		return nil, fmt.Errorf("unsupported install URI scheme '%s'", ctx.ScriptUri.Scheme)
+	}
+
+	return installer, nil
+}
+
+func getAssetInstaller(ctx *assetInstallCtx) (assetInstaller, error) {
+	assetScheme := codeext.Tern(
+		ctx.IsRelative(), ctx.ScriptInstallCtx.ScriptUri.Scheme, ctx.AssetUri.Scheme)
+
+	assetProtocol := getInstallProtocol(assetScheme)
+	installer, installerCacheHit := assetInstallers[assetProtocol]
+
+	if installerCacheHit {
+		return installer, nil
+	}
+
+	switch assetProtocol {
+	case FS_INSTALL_PROTOCOL:
+		installer = &fsAssetInstaller{}
+	case HTTP_INSTALL_PROTOCOL:
+		installer = &httpAssetInstaller{}
+	case GIT_INSTALL_PROTOCOL:
+		installer = &gitAssetInstaller{}
+	default:
+		return nil, fmt.Errorf("unsupported install URI scheme '%s'", ctx.AssetUri.Scheme)
+	}
+
+	assetInstallers[assetProtocol] = installer
+	return installer, nil
+}
+
+func Install(uri string) (*scriptmeta.ScriptMetadata, error) {
+	ctx, err := newScriptInstallCtx(uri)
+	if err != nil {
+		return nil, err
+	}
+
+	scriptInstlr, err := getScriptInstaller(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = scriptInstlr.prepare(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if !pathext.Exists(ctx.InstallFromLocalFile) {
+		return nil, fmt.Errorf("script not found at '%s'", ctx.InstallFromLocalFile)
+	}
+
+	meta, err := ParseMetadata(ctx.InstallFromLocalFile)
 	if err != nil {
 		return nil, err
 	}
 	ctx.Meta = meta
 
-	err = installMainFile(ctx)
+	installDir, err := xdg.DataFile(config.SCRIPT_HOME + "/" +
+		ctx.Meta.InstallScriptIdDir())
+	if err != nil {
+		return nil, err
+	}
+	ctx.InstallTargetDir = installDir
+	ctx.InstallTargetMainFile = installDir + "/" + ctx.Meta.Name + ctx.Meta.Ext
+
+	err = scriptInstlr.installMainFile(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, assetUri := range ctx.Meta.Assets {
-		err = installAsset(assetUri, ctx)
+		assetCtx, err := newAssetInstallCtx(assetUri, ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		assetInstlr, err := getAssetInstaller(assetCtx)
+		if err != nil {
+			return nil, err
+		}
+
+		err = assetInstlr.installAsset(assetCtx)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	return ctx.Meta, nil
-}
-
-func Uninstall(id string) error {
-	found, scriptPath := scriptmeta.GetScriptPathFromId(id)
-	if !found {
-		return fmt.Errorf("unable to find script with id '%s' for uninstall", id)
-	}
-
-	installDir := path.Dir(scriptPath)
-
-	err := os.RemoveAll(installDir)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
