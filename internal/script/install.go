@@ -7,7 +7,6 @@ import (
 
 	"marcuson/scriptman/internal/config"
 	"marcuson/scriptman/internal/script/internal/scriptmeta"
-	"marcuson/scriptman/internal/utils/codeext"
 	"marcuson/scriptman/internal/utils/pathext"
 
 	"github.com/adrg/xdg"
@@ -19,9 +18,36 @@ const (
 	GIT_INSTALL_PROTOCOL  = "git"
 )
 
+func getInstallProtocol(uriScheme string, rawUri string, fallback ...string) string {
+	switch uriScheme {
+	case "":
+	case "file":
+		return FS_INSTALL_PROTOCOL
+	case "http":
+		return HTTP_INSTALL_PROTOCOL
+	case "https":
+		rawSplit := strings.Split(rawUri, ":")
+		baseUrl := rawSplit[1]
+		if strings.HasSuffix(baseUrl, ".git") {
+			return GIT_INSTALL_PROTOCOL
+		}
+
+		return HTTP_INSTALL_PROTOCOL
+	case "git":
+		return GIT_INSTALL_PROTOCOL
+	}
+
+	if len(fallback) > 0 {
+		return fallback[0]
+	}
+
+	return ""
+}
+
 type scriptInstallCtx struct {
-	RawUri    string
-	ScriptUri *url.URL
+	RawUri          string
+	ScriptUri       *url.URL
+	InstallProtocol string
 
 	InstallFromLocalFile  string
 	Meta                  *scriptmeta.ScriptMetadata
@@ -44,6 +70,7 @@ func newScriptInstallCtx(uri string) (*scriptInstallCtx, error) {
 	}
 
 	ctx.ScriptUri = uriParsed
+	ctx.InstallProtocol = getInstallProtocol(uriParsed.Scheme, uri)
 
 	return ctx, nil
 }
@@ -56,6 +83,7 @@ type scriptInstaller interface {
 type assetInstallCtx struct {
 	RawUri            string
 	AssetUri          *url.URL
+	InstallProtocol   string
 	InstallTargetFile string
 
 	ScriptInstallCtx *scriptInstallCtx
@@ -73,6 +101,7 @@ func newAssetInstallCtx(assetUri string, scriptCtx *scriptInstallCtx) (*assetIns
 	}
 
 	ctx.AssetUri = uriParsed
+	ctx.InstallProtocol = getInstallProtocol(uriParsed.Scheme, assetUri, scriptCtx.InstallProtocol)
 
 	if ctx.IsRelative() {
 		ctx.InstallTargetFile = ctx.ScriptInstallCtx.InstallTargetDir + "/" + uriParsed.Path
@@ -95,28 +124,9 @@ var (
 	assetInstallers = make(map[string]assetInstaller)
 )
 
-func getInstallProtocol(uriScheme string) string {
-	switch uriScheme {
-	case "":
-	case "file":
-		return FS_INSTALL_PROTOCOL
-	case "http":
-		return HTTP_INSTALL_PROTOCOL
-	case "https":
-		if strings.HasSuffix(uriScheme, ".git") {
-			return GIT_INSTALL_PROTOCOL
-		}
-
-		return HTTP_INSTALL_PROTOCOL
-	case "git":
-		return GIT_INSTALL_PROTOCOL
-	}
-
-	return ""
-}
-
 func getScriptInstaller(ctx *scriptInstallCtx) (scriptInstaller, error) {
-	scriptInstallProtocol := getInstallProtocol(ctx.ScriptUri.Scheme)
+	scriptInstallProtocol := ctx.InstallProtocol
+
 	var installer scriptInstaller
 	switch scriptInstallProtocol {
 	case FS_INSTALL_PROTOCOL:
@@ -133,10 +143,7 @@ func getScriptInstaller(ctx *scriptInstallCtx) (scriptInstaller, error) {
 }
 
 func getAssetInstaller(ctx *assetInstallCtx) (assetInstaller, error) {
-	assetScheme := codeext.Tern(
-		ctx.IsRelative(), ctx.ScriptInstallCtx.ScriptUri.Scheme, ctx.AssetUri.Scheme)
-
-	assetProtocol := getInstallProtocol(assetScheme)
+	assetProtocol := ctx.InstallProtocol
 	installer, installerCacheHit := assetInstallers[assetProtocol]
 
 	if installerCacheHit {
@@ -149,7 +156,9 @@ func getAssetInstaller(ctx *assetInstallCtx) (assetInstaller, error) {
 	case HTTP_INSTALL_PROTOCOL:
 		installer = &httpAssetInstaller{}
 	case GIT_INSTALL_PROTOCOL:
-		installer = &gitAssetInstaller{}
+		installer = &gitAssetInstaller{
+			fsAssetInstlr: &fsAssetInstaller{},
+		}
 	default:
 		return nil, fmt.Errorf("unsupported install URI scheme '%s'", ctx.AssetUri.Scheme)
 	}

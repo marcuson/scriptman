@@ -23,6 +23,10 @@
       // "args": [
       //   "install",
       //   "https://marcuson.github.io/scriptman/examples/bash/example_assets.sh"
+      // ],
+      // "args": [
+      //   "install",
+      //   "https://github.com/marcuson/scriptman.git:examples/bash/example_assets.sh"
       // ]
       // "args": ["uninstall", "marcex-exbash"]
       // "args": ["ls"]

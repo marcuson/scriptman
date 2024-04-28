@@ -5,6 +5,7 @@ const (
 
 	TMP_ROOT_DIR         = SCRIPTMAN_HOME_DEFAULT + "/_tmp"
 	TMP_HTTP_INSTALL_DIR = TMP_ROOT_DIR + "/http-install"
+	TMP_GIT_INSTALL_DIR  = TMP_ROOT_DIR + "/git-install"
 	SCRIPT_HOME          = SCRIPTMAN_HOME_DEFAULT + "/scripts"
 	BIN_HOME             = SCRIPTMAN_HOME_DEFAULT + "/bin"
 
