@@ -82,6 +82,8 @@ func (obj *MetadataProcessor) parseMetadata(line *scan.LineScript) error {
 		obj._meta.GetOrAddSection(metaValue).LineEnd = line.LineIndex
 	case "asset":
 		obj._meta.Assets = append(obj._meta.Assets, metaValue)
+	case "getargs-tpl":
+		obj._meta.GetargsTpl = metaValue
 	default:
 		return fmt.Errorf("unknown meta key: %s", metaKey)
 	}

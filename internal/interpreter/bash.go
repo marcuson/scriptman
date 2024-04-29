@@ -53,5 +53,5 @@ func (obj *bashInterpreter) GetargsOutro(tokens []string) string {
 }
 
 func (obj *bashInterpreter) GetEnvVarInjectCode(key string, value string) string {
-	return "export " + key + "=" + value
+	return "export " + key + `="` + value + `"`
 }

@@ -11,8 +11,10 @@ import (
 	"marcuson/scriptman/internal/script/internal/scriptutils"
 	"marcuson/scriptman/internal/utils/codeext"
 	"os"
+	"path"
 	"slices"
 	"strings"
+	"text/template"
 )
 
 var (
@@ -115,6 +117,9 @@ func envToMap(envStr string, ctx *run.RunCtx) map[string]string {
 	m := make(map[string]string, len(envLines))
 	for _, l := range envLines {
 		kv := strings.Split(l, "=")
+		if len(kv) < 2 {
+			continue
+		}
 
 		if ctx.Meta.InterpreterInfo().GetargsFilterOutEnvVar(kv[0]) {
 			continue
@@ -168,6 +173,27 @@ func getargsPostRun(ctx *run.RunCtx) error {
 	return nil
 }
 
+func writeDiffPlain(writer io.StringWriter, env map[string]string) error {
+	for k, v := range env {
+		_, err := writer.WriteString(k + "=" + v + "\n")
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func writeDiffWithTpl(writer io.Writer, env map[string]string, tplPath string) error {
+	getargsTpl, err := template.ParseFiles(tplPath)
+	if err != nil {
+		return err
+	}
+
+	err = getargsTpl.Execute(writer, env)
+	return err
+}
+
 func Getargs(idOrPath string, out string) error {
 	found, scriptPath := scriptutils.FindScriptPath(idOrPath)
 	if !found {
@@ -208,11 +234,15 @@ func Getargs(idOrPath string, out string) error {
 	}
 	defer outFile.Close()
 
-	for k, v := range envDelta {
-		_, err := outFile.WriteString(k + "=" + v + "\n")
-		if err != nil {
-			return err
-		}
+	if ctx.Meta.GetargsTpl == "" {
+		err = writeDiffPlain(outFile, envDelta)
+	} else {
+		tplPath := path.Dir(ctx.NormTmpScriptPath) + "/" + ctx.Meta.GetargsTpl
+		err = writeDiffWithTpl(outFile, envDelta, tplPath)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	return outFile.Sync()

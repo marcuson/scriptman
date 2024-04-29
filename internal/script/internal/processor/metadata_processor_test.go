@@ -135,6 +135,26 @@ func TestMetadataAssetOk(t *testing.T) {
 	verify.Slice(meta.Assets).Contain("assets/**")
 }
 
+func TestMetadataGetargsTplOk(t *testing.T) {
+	processor := NewMetadataProcessor("")
+
+	err := processor.ProcessStart()
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:       "# @scriptman getargs-tpl info.txt",
+		LineIndex:  0,
+		IsMetadata: true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessEnd()
+	verify.NoError(err).Require(t)
+
+	meta := processor.Metadata()
+	verify.String(meta.GetargsTpl).Equal("info.txt").Require(t)
+}
+
 func TestMetadataFillMissingOk(t *testing.T) {
 	scriptPath := testdir + "/meta_ok_001.sh"
 	processor := NewMetadataProcessor(scriptPath)

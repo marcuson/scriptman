@@ -30,13 +30,14 @@ func (obj *DotenvInjectorRewriter) RewriteBeforeAll() (string, error) {
 		return "", err
 	}
 
-	injectLines := []string{}
+	injectLines := []string{"# SCRIPTMAN - LOADED ENV - START"}
 	for k, v := range envMap {
 		injectEnvLine := inter.GetEnvVarInjectCode(k, v)
 		if injectEnvLine != "" {
 			injectLines = append(injectLines, injectEnvLine)
 		}
 	}
+	injectLines = append(injectLines, "# SCRIPTMAN - LOADED ENV - END", "")
 
 	return strings.Join(injectLines, "\n"), nil
 }

@@ -29,6 +29,8 @@ type ScriptMetadata struct {
 	Interpreter string
 	Ext         string
 
+	GetargsTpl string
+
 	Sections map[string]*ScriptSection
 	Assets   []string
 }
