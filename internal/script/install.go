@@ -27,7 +27,13 @@ func getInstallProtocol(uriScheme string, rawUri string, fallback ...string) str
 		return HTTP_INSTALL_PROTOCOL
 	case "https":
 		rawSplit := strings.Split(rawUri, ":")
-		baseUrl := rawSplit[1]
+		var baseUrl string
+		if atIdx := strings.LastIndex(rawSplit[1], "@"); atIdx >= 0 {
+			baseUrl = rawSplit[1][:atIdx]
+		} else {
+			baseUrl = rawSplit[1]
+		}
+
 		if strings.HasSuffix(baseUrl, ".git") {
 			return GIT_INSTALL_PROTOCOL
 		}

@@ -2,9 +2,11 @@ package script
 
 import (
 	"marcuson/scriptman/internal/config"
+	"marcuson/scriptman/internal/utils/execext"
 	"marcuson/scriptman/internal/utils/fsext"
 	"marcuson/scriptman/internal/utils/hashext"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/adrg/xdg"
@@ -35,17 +37,28 @@ func (obj *gitScriptInstaller) prepare(ctx *scriptInstallCtx) error {
 	mainFileGitPath := rawUriSplit[len(rawUriSplit)-1]
 	ctx.InstallFromLocalFile = tmpInstallDir + "/" + mainFileGitPath
 
-	// gitRepoUrl := strings.Join(rawUriSplit[:len(rawUriSplit)-1], ":")
-	// cloneCmd := exec.Command("git",
-	// 	execext.StrToArgs("clone --depth 1 "+gitRepoUrl+" "+tmpInstallDir)...)
-	// cloneCmd.Stderr = os.Stderr
-	// cloneCmd.Stdout = os.Stdout
-	// cloneCmd.Stdin = os.Stdin
+	gitRepoUrl := strings.Join(rawUriSplit[:len(rawUriSplit)-1], ":")
+	gitBranch := ""
 
-	// err = cloneCmd.Run()
-	// if err != nil {
-	// 	return err
-	// }
+	if atIdx := strings.LastIndex(gitRepoUrl, "@"); atIdx >= 0 {
+		gitBranch = gitRepoUrl[atIdx+1:]
+		gitRepoUrl = gitRepoUrl[:atIdx]
+	}
+
+	cloneCmdStr := "clone --depth 1"
+	if gitBranch != "" {
+		cloneCmdStr = cloneCmdStr + " --branch " + gitBranch
+	}
+	cloneCmdStr = cloneCmdStr + " " + gitRepoUrl + " " + tmpInstallDir
+	cloneCmd := exec.Command("git", execext.StrToArgs(cloneCmdStr)...)
+	cloneCmd.Stderr = os.Stderr
+	cloneCmd.Stdout = os.Stdout
+	cloneCmd.Stdin = os.Stdin
+
+	err = cloneCmd.Run()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
