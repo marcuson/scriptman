@@ -7,19 +7,28 @@ import (
 	"marcuson/scriptman/internal/utils/codeext"
 	"marcuson/scriptman/internal/utils/pathext"
 	"path"
-	"strings"
 )
 
 type MetadataProcessor struct {
-	scriptPath string
-	_meta      scriptmeta.ScriptMetadata
+	scriptPath      string
+	interpreterProc *InterpreterProcessor
+	headOnly        bool
+	isHeadFinished  bool
+	_meta           scriptmeta.ScriptMetadata
 }
 
 func NewMetadataProcessor(scriptPath string) *MetadataProcessor {
 	return &MetadataProcessor{
-		scriptPath: scriptPath,
-		_meta:      *scriptmeta.NewScriptMetadata(),
+		scriptPath:      scriptPath,
+		interpreterProc: NewInterpreterProcessor(),
+		isHeadFinished:  false,
+		_meta:           *scriptmeta.NewScriptMetadata(),
 	}
+}
+
+func (obj *MetadataProcessor) SetHeadOnly(headOnly bool) *MetadataProcessor {
+	obj.headOnly = headOnly
+	return obj
 }
 
 func (obj *MetadataProcessor) Metadata() *scriptmeta.ScriptMetadata {
@@ -27,21 +36,37 @@ func (obj *MetadataProcessor) Metadata() *scriptmeta.ScriptMetadata {
 }
 
 func (obj *MetadataProcessor) ProcessStart() error {
-	return nil
+	return obj.interpreterProc.ProcessStart()
 }
 
 func (obj *MetadataProcessor) ProcessLine(line *scan.LineScript) error {
-	switch {
-	case line.IsShebang:
-		return obj.parseShebang(line)
-	case line.IsMetadata:
-		return obj.parseMetadata(line)
-	default:
+	if obj.headOnly && obj.isHeadFinished {
 		return nil
 	}
+
+	if line.LineIndex == 0 {
+		err := obj.interpreterProc.ProcessLine(line)
+		obj._meta.Interpreter = obj.interpreterProc.interpreter
+		return err
+	}
+
+	if !line.IsEmpty && !line.IsComment {
+		obj.isHeadFinished = true
+	}
+
+	if !line.IsMetadata {
+		return nil
+	}
+
+	return obj.parseMetadata(line)
 }
 
 func (obj *MetadataProcessor) ProcessEnd() error {
+	err := obj.interpreterProc.ProcessEnd()
+	if err != nil {
+		return err
+	}
+
 	if obj.scriptPath == "" {
 		return nil
 	}
@@ -50,14 +75,6 @@ func (obj *MetadataProcessor) ProcessEnd() error {
 
 	codeext.SetIf(&obj._meta.Namespace, obj._meta.Namespace == "", "_nons_")
 	codeext.SetIf(&obj._meta.Name, obj._meta.Name == "", pathext.Name(obj.scriptPath))
-	return nil
-}
-
-func (obj *MetadataProcessor) parseShebang(line *scan.LineScript) error {
-	lineSplit := line.LineSplit()
-	interpreter := lineSplit[len(lineSplit)-1]
-	interpreter = strings.Replace(interpreter, "#!", "", 1)
-	obj._meta.Interpreter = interpreter
 	return nil
 }
 
@@ -72,18 +89,22 @@ func (obj *MetadataProcessor) parseMetadata(line *scan.LineScript) error {
 		obj._meta.Namespace = metaValue
 	case "name":
 		obj._meta.Name = metaValue
-	case "interpreter":
-		if obj._meta.Interpreter == "" {
-			obj._meta.Interpreter = metaValue
-		}
-	case "sec:start":
-		obj._meta.GetOrAddSection(metaValue).LineStart = line.LineIndex
-	case "sec:end":
-		obj._meta.GetOrAddSection(metaValue).LineEnd = line.LineIndex
 	case "asset":
 		obj._meta.Assets = append(obj._meta.Assets, metaValue)
 	case "getargs-tpl":
 		obj._meta.GetargsTpl = metaValue
+	case "sec:start":
+		if obj.headOnly {
+			obj.isHeadFinished = true
+			return nil
+		}
+		obj._meta.GetOrAddSection(metaValue).LineStart = line.LineIndex
+	case "sec:end":
+		if obj.headOnly {
+			obj.isHeadFinished = true
+			return nil
+		}
+		obj._meta.GetOrAddSection(metaValue).LineEnd = line.LineIndex
 	default:
 		return fmt.Errorf("unknown meta key: %s", metaKey)
 	}
@@ -92,5 +113,5 @@ func (obj *MetadataProcessor) parseMetadata(line *scan.LineScript) error {
 }
 
 func (obj *MetadataProcessor) IsProcessCompletedEarly() bool {
-	return false
+	return obj.headOnly && obj.isHeadFinished
 }

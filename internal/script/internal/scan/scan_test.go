@@ -28,6 +28,8 @@ func TestScanOk(t *testing.T) {
 	verify.String(line.Text).Equal("#!/usr/bin/env bash").Assert(t)
 	verify.True(line.IsShebang).Assert(t)
 
+	scanner.SetInterpreter("bash")
+
 	lineOk = scanner.Scan()
 	line = scanner.Line()
 	verify.True(lineOk).Require(t)
@@ -84,6 +86,16 @@ func TestScanAssetsOk(t *testing.T) {
 	verify.True(lineOk).Require(t)
 	verify.NoError(scanner.Err()).Require(t)
 	verify.Number(line.LineIndex).Equal(0).Assert(t)
+	verify.String(line.Text).Equal("#!/usr/bin/env bash").Assert(t)
+	verify.True(line.IsShebang).Assert(t)
+
+	scanner.SetInterpreter("bash")
+
+	lineOk = scanner.Scan()
+	line = scanner.Line()
+	verify.True(lineOk).Require(t)
+	verify.NoError(scanner.Err()).Require(t)
+	verify.Number(line.LineIndex).Equal(1).Assert(t)
 	verify.String(line.Text).Equal("# @scriptman asset assets/**").Assert(t)
 	verify.True(line.IsMetadata).Assert(t)
 

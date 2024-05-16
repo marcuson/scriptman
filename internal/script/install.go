@@ -193,7 +193,7 @@ func Install(uri string) (*scriptmeta.ScriptMetadata, error) {
 		return nil, fmt.Errorf("script not found at '%s'", ctx.InstallFromLocalFile)
 	}
 
-	meta, err := ParseMetadata(ctx.InstallFromLocalFile)
+	meta, err := ParseMetadataHeaderOnly(ctx.InstallFromLocalFile)
 	if err != nil {
 		return nil, err
 	}

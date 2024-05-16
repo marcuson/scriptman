@@ -34,7 +34,7 @@ func GetInstalledList() ([]*scriptmeta.ScriptMetadata, error) {
 	scriptsMeta := []*scriptmeta.ScriptMetadata{}
 
 	for _, fPath := range scriptFilepaths {
-		meta, err := ParseMetadata(fPath)
+		meta, err := ParseMetadataHeaderOnly(fPath)
 		if err != nil {
 			return nil, err
 		}

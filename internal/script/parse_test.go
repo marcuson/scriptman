@@ -18,6 +18,17 @@ func TestParseOk(t *testing.T) {
 	verify.Map(meta.Sections).Empty()
 }
 
+func TestParseHeaderOnlyOk(t *testing.T) {
+	meta, err := ParseMetadataHeaderOnly(testdir + "/meta_ok_001.sh")
+
+	verify.NoError(err).Require(t)
+	verify.Obj(meta).NotEqual(nil).Assert(t)
+	verify.String(meta.Interpreter).Equal("bash").Assert(t)
+	verify.String(meta.Namespace).Equal("marctest").Assert(t)
+	verify.String(meta.Name).Equal("meta_ok_001").Assert(t)
+	verify.Map(meta.Sections).Empty()
+}
+
 func TestParseOkNoShebang(t *testing.T) {
 	meta, err := ParseMetadata(testdir + "/meta_ok_002.sh")
 
@@ -29,15 +40,27 @@ func TestParseOkNoShebang(t *testing.T) {
 	verify.Map(meta.Sections).Empty()
 }
 
-func TestParseOkShebangAndInterpreter(t *testing.T) {
-	meta, err := ParseMetadata(testdir + "/meta_ok_003.sh")
+func TestParseOkNoShebangHeaderOnly(t *testing.T) {
+	meta, err := ParseMetadataHeaderOnly(testdir + "/meta_ok_002.sh")
 
 	verify.NoError(err).Require(t)
 	verify.Obj(meta).NotEqual(nil).Assert(t)
 	verify.String(meta.Interpreter).Equal("bash").Assert(t)
 	verify.String(meta.Namespace).Equal("marctest").Assert(t)
-	verify.String(meta.Name).Equal("meta_ok_003").Assert(t)
+	verify.String(meta.Name).Equal("meta_ok_002").Assert(t)
 	verify.Map(meta.Sections).Empty()
+}
+
+func TestParseOkWithRunHeaderOnly(t *testing.T) {
+	meta, err := ParseMetadataHeaderOnly(testdir + "/run_ok_001.sh")
+
+	verify.NoError(err).Require(t)
+	verify.Obj(meta).NotEqual(nil).Assert(t)
+	verify.String(meta.Interpreter).Equal("bash").Assert(t)
+	verify.String(meta.Namespace).Equal("marctest").Assert(t)
+	verify.String(meta.Name).Equal("run_ok_001").Assert(t)
+
+	verify.Map(meta.Sections).Len(0).Require(t)
 }
 
 func TestParseOkWithRun(t *testing.T) {
@@ -61,7 +84,7 @@ func TestParseInterpreterOnlyOk(t *testing.T) {
 }
 
 func TestParseAssetsOnlyOk(t *testing.T) {
-	meta, err := ParseMetadata(testdir + "/assets_ok_001.sh")
+	meta, err := ParseMetadataHeaderOnly(testdir + "/assets_ok_001.sh")
 
 	verify.NoError(err).Require(t)
 	verify.Slice(meta.Assets).Len(1).Assert(t)

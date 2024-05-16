@@ -169,3 +169,149 @@ func TestMetadataFillMissingOk(t *testing.T) {
 	verify.String(meta.Namespace).Equal("_nons_").Assert(t)
 	verify.String(meta.Name).Equal("meta_ok_001").Assert(t)
 }
+
+func TestMetadataHeadOnlyWithInstructionOk(t *testing.T) {
+	scriptPath := testdir + "/meta_ok_001.sh"
+	processor := NewMetadataProcessor(scriptPath)
+	processor.SetHeadOnly(true)
+
+	err := processor.ProcessStart()
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:      "#!/usr/bin/env bash",
+		LineIndex: 0,
+		IsShebang: true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:      "",
+		LineIndex: 1,
+		IsEmpty:   true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:      "# comment #1",
+		LineIndex: 2,
+		IsComment: true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:       "# @scriptman namespace example",
+		LineIndex:  3,
+		IsMetadata: true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:      "# comment #2",
+		LineIndex: 4,
+		IsComment: true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:      "",
+		LineIndex: 5,
+		IsEmpty:   true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:      "first instruction",
+		LineIndex: 6,
+	})
+	verify.NoError(err).Require(t)
+	verify.True(processor.IsProcessCompletedEarly()).Assert(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:      "second instruction",
+		LineIndex: 7,
+	})
+	verify.NoError(err).Require(t)
+	verify.True(processor.IsProcessCompletedEarly()).Assert(t)
+
+	err = processor.ProcessEnd()
+	verify.NoError(err).Require(t)
+
+	meta := processor.Metadata()
+	verify.Obj(meta).NotEqual(nil).Assert(t)
+	verify.String(meta.Interpreter).Equal("bash").Assert(t)
+	verify.String(meta.Namespace).Equal("example").Assert(t)
+}
+
+func TestMetadataHeadOnlyWithSectionOk(t *testing.T) {
+	scriptPath := testdir + "/meta_ok_001.sh"
+	processor := NewMetadataProcessor(scriptPath)
+	processor.SetHeadOnly(true)
+
+	err := processor.ProcessStart()
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:      "#!/usr/bin/env bash",
+		LineIndex: 0,
+		IsShebang: true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:      "",
+		LineIndex: 1,
+		IsEmpty:   true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:      "# comment #1",
+		LineIndex: 2,
+		IsComment: true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:       "# @scriptman namespace example",
+		LineIndex:  3,
+		IsMetadata: true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:      "# comment #2",
+		LineIndex: 4,
+		IsComment: true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:      "",
+		LineIndex: 5,
+		IsEmpty:   true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:      "# @scriptman sec:start getargs",
+		LineIndex: 6,
+	})
+	verify.NoError(err).Require(t)
+	verify.True(processor.IsProcessCompletedEarly()).Assert(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:      "# @scriptman sec:end getargs",
+		LineIndex: 7,
+	})
+	verify.NoError(err).Require(t)
+	verify.True(processor.IsProcessCompletedEarly()).Assert(t)
+
+	err = processor.ProcessEnd()
+	verify.NoError(err).Require(t)
+
+	meta := processor.Metadata()
+	verify.Obj(meta).NotEqual(nil).Assert(t)
+	verify.String(meta.Interpreter).Equal("bash").Assert(t)
+	verify.String(meta.Namespace).Equal("example").Assert(t)
+}

@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func ParseMetadata(path string) (*scriptmeta.ScriptMetadata, error) {
+func parseMetadata(path string, headOnly bool) (*scriptmeta.ScriptMetadata, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -15,12 +15,21 @@ func ParseMetadata(path string) (*scriptmeta.ScriptMetadata, error) {
 	defer file.Close()
 
 	metaProcessor := processor.NewMetadataProcessor(path)
+	metaProcessor.SetHeadOnly(headOnly)
 	handler := handle.NewHandler(file, metaProcessor)
 	if err = handler.Handle(); err != nil {
 		return nil, err
 	}
 
 	return metaProcessor.Metadata(), nil
+}
+
+func ParseMetadataHeaderOnly(path string) (*scriptmeta.ScriptMetadata, error) {
+	return parseMetadata(path, true)
+}
+
+func ParseMetadata(path string) (*scriptmeta.ScriptMetadata, error) {
+	return parseMetadata(path, false)
 }
 
 func ParseInterpreter(path string) (string, error) {
@@ -30,11 +39,10 @@ func ParseInterpreter(path string) (string, error) {
 	}
 	defer file.Close()
 
-	interProcessor := processor.NewInterpreterProcessor()
-	handler := handle.NewHandler(file, interProcessor)
+	handler := handle.NewHandler(file)
 	if err = handler.Handle(); err != nil {
 		return "", err
 	}
 
-	return interProcessor.Interpreter(), nil
+	return handler.Interpreter(), nil
 }
