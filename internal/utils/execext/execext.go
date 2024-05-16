@@ -1,7 +1,11 @@
 package execext
 
-import "regexp"
+import (
+	"regexp"
+	"slices"
+)
 
 func StrToArgs(cmdStr string) []string {
-	return regexp.MustCompile(`\s`).Split(cmdStr, -1)
+	split := regexp.MustCompile(`\s`).Split(cmdStr, -1)
+	return slices.DeleteFunc(split, func(s string) bool { return s == "" })
 }

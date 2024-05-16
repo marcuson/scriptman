@@ -10,6 +10,8 @@ import (
 	"github.com/adrg/xdg"
 )
 
+// FIXME: The HTTP implementation should be reviewed completely
+
 type httpScriptInstaller struct{}
 
 func (obj *httpScriptInstaller) prepare(ctx *scriptInstallCtx) error {
@@ -19,7 +21,13 @@ func (obj *httpScriptInstaller) prepare(ctx *scriptInstallCtx) error {
 		return err
 	}
 
-	err = httpext.DownloadFile(ctx.RawUri, tmpInstallPath)
+	targetFile, err := os.Create(tmpInstallPath)
+	if err != nil {
+		return err
+	}
+	defer targetFile.Close()
+
+	err = httpext.DownloadFile(ctx.RawUri, targetFile)
 	if err != nil {
 		return err
 	}
@@ -54,6 +62,12 @@ func (obj *httpAssetInstaller) installAsset(ctx *assetInstallCtx) error {
 		return err
 	}
 
-	err = httpext.DownloadFile(downloadUri, ctx.InstallTargetFile)
+	targetFile, err := os.Create(ctx.InstallTargetFile)
+	if err != nil {
+		return err
+	}
+	defer targetFile.Close()
+
+	err = httpext.DownloadFile(downloadUri, targetFile)
 	return err
 }

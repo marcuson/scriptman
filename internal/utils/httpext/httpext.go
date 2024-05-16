@@ -1,25 +1,27 @@
 package httpext
 
 import (
+	"fmt"
 	"io"
 	"net/http"
-	"os"
 )
 
-func DownloadFile(url string, filepath string) error {
-	out, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
+var (
+	httpGet = http.Get
+)
 
-	resp, err := http.Get(url)
+func DownloadFile(url string, writer io.Writer) error {
+	resp, err := httpGet(url)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	_, err = io.Copy(out, resp.Body)
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("download failed, status code is not 200")
+	}
+
+	_, err = io.Copy(writer, resp.Body)
 	if err != nil {
 		return err
 	}
