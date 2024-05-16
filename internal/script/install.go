@@ -50,6 +50,25 @@ func getInstallProtocol(uriScheme string, rawUri string, fallback ...string) str
 	return ""
 }
 
+type tmpPathCacher struct {
+	tmpPaths map[string]bool
+}
+
+func newTmpPathCacher() *tmpPathCacher {
+	return &tmpPathCacher{
+		tmpPaths: make(map[string]bool),
+	}
+}
+
+func (obj *tmpPathCacher) Has(path string) bool {
+	_, found := obj.tmpPaths[path]
+	return found
+}
+
+func (obj *tmpPathCacher) Register(path string) {
+	obj.tmpPaths[path] = true
+}
+
 type scriptInstallCtx struct {
 	RawUri          string
 	ScriptUri       *url.URL
@@ -59,11 +78,14 @@ type scriptInstallCtx struct {
 	Meta                  *scriptmeta.ScriptMetadata
 	InstallTargetMainFile string
 	InstallTargetDir      string
+
+	TmpPathsCache *tmpPathCacher
 }
 
 func newScriptInstallCtx(uri string) (*scriptInstallCtx, error) {
 	ctx := &scriptInstallCtx{
-		RawUri: uri,
+		RawUri:        uri,
+		TmpPathsCache: newTmpPathCacher(),
 	}
 
 	uriParsed, err := url.Parse(ctx.RawUri)
@@ -92,6 +114,7 @@ type assetInstallCtx struct {
 	InstallProtocol   string
 	InstallTargetFile string
 
+	TmpPathsCache    *tmpPathCacher
 	ScriptInstallCtx *scriptInstallCtx
 }
 
@@ -99,6 +122,7 @@ func newAssetInstallCtx(assetUri string, scriptCtx *scriptInstallCtx) (*assetIns
 	ctx := &assetInstallCtx{
 		RawUri:           assetUri,
 		ScriptInstallCtx: scriptCtx,
+		TmpPathsCache:    newTmpPathCacher(),
 	}
 
 	uriParsed, err := url.Parse(assetUri)

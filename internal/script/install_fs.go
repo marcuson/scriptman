@@ -4,6 +4,7 @@ import (
 	"marcuson/scriptman/internal/utils/fsext"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
 )
@@ -25,30 +26,39 @@ type fsAssetInstaller struct{}
 func (obj *fsAssetInstaller) installAsset(ctx *assetInstallCtx) error {
 	var err error
 	if ctx.IsRelative() {
-		err = obj.installFromRelGlob(ctx)
+		installFromLocalDir := path.Dir(ctx.ScriptInstallCtx.InstallFromLocalFile)
+		err = obj.installFromGlob(installFromLocalDir, ctx.RawUri, ctx.ScriptInstallCtx.InstallTargetDir)
 	} else {
-		err = obj.installFromAbsPath(ctx)
+		rawUriSplit := strings.Split(ctx.AssetUri.Path, "|>")
+		var basePath string
+		var glob string
+		if len(rawUriSplit) > 1 {
+			basePath = rawUriSplit[0]
+			glob = rawUriSplit[1]
+		} else {
+			basePath = path.Dir(ctx.AssetUri.Path)
+			glob = path.Base(ctx.AssetUri.Path)
+		}
+		err = obj.installFromGlob(basePath, glob, ctx.ScriptInstallCtx.InstallTargetDir)
 	}
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
-func (obj *fsAssetInstaller) installFromRelGlob(ctx *assetInstallCtx) error {
-	installFromLocalDir := path.Dir(ctx.ScriptInstallCtx.InstallFromLocalFile)
+func (obj *fsAssetInstaller) installFromGlob(
+	basePath string, glob string, scriptTargetDir string) error {
+
+	installFromLocalDir := basePath
 	installFromDirFSys := os.DirFS(installFromLocalDir)
 
-	files, err := doublestar.Glob(installFromDirFSys, ctx.RawUri, doublestar.WithFilesOnly())
+	files, err := doublestar.Glob(installFromDirFSys, glob, doublestar.WithFilesOnly())
 	if err != nil {
 		return err
 	}
 
 	for _, f := range files {
 		fInstallFromPath := installFromLocalDir + "/" + f
-		fInstallPath := ctx.ScriptInstallCtx.InstallTargetDir + "/" + f
+		fInstallPath := scriptTargetDir + "/" + f
 		_, err = fsext.CopyFile(fInstallFromPath, fInstallPath)
 		if err != nil {
 			return err
@@ -56,9 +66,4 @@ func (obj *fsAssetInstaller) installFromRelGlob(ctx *assetInstallCtx) error {
 	}
 
 	return nil
-}
-
-func (obj *fsAssetInstaller) installFromAbsPath(ctx *assetInstallCtx) error {
-	_, err := fsext.CopyFile(ctx.RawUri, ctx.InstallTargetFile)
-	return err
 }
