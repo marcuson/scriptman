@@ -114,14 +114,14 @@ func TestMetadataAssetOk(t *testing.T) {
 
 	err = processor.ProcessLine(&scan.LineScript{
 		Text:       "# @scriptman asset info.txt",
-		LineIndex:  0,
+		LineIndex:  1,
 		IsMetadata: true,
 	})
 	verify.NoError(err).Require(t)
 
 	err = processor.ProcessLine(&scan.LineScript{
 		Text:       `# @scriptman asset assets/**`,
-		LineIndex:  1,
+		LineIndex:  2,
 		IsMetadata: true,
 	})
 	verify.NoError(err).Require(t)
@@ -143,7 +143,7 @@ func TestMetadataGetargsTplOk(t *testing.T) {
 
 	err = processor.ProcessLine(&scan.LineScript{
 		Text:       "# @scriptman getargs-tpl info.txt",
-		LineIndex:  0,
+		LineIndex:  1,
 		IsMetadata: true,
 	})
 	verify.NoError(err).Require(t)

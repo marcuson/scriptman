@@ -2,20 +2,22 @@ package processor
 
 import (
 	"marcuson/scriptman/internal/script/internal/scan"
+	"strings"
 )
 
 type InterpreterProcessor struct {
-	metaProcessor *MetadataProcessor
+	isOverLine0 bool
+	interpreter string
 }
 
 func NewInterpreterProcessor() *InterpreterProcessor {
 	return &InterpreterProcessor{
-		metaProcessor: NewMetadataProcessor(""),
+		isOverLine0: false,
 	}
 }
 
 func (obj *InterpreterProcessor) Interpreter() string {
-	return obj.metaProcessor.Metadata().Interpreter
+	return obj.interpreter
 }
 
 func (obj *InterpreterProcessor) ProcessStart() error {
@@ -23,13 +25,33 @@ func (obj *InterpreterProcessor) ProcessStart() error {
 }
 
 func (obj *InterpreterProcessor) ProcessLine(line *scan.LineScript) error {
-	return obj.metaProcessor.ProcessLine(line)
+	if line.LineIndex > 0 {
+		obj.isOverLine0 = true
+		return nil
+	}
+
+	switch {
+	case line.IsShebang:
+		lineSplit := line.LineSplit()
+		inter := lineSplit[len(lineSplit)-1]
+		inter = strings.Replace(inter, "#!", "", 1)
+		obj.interpreter = inter
+	case line.IsMetadata:
+		lineSplit := line.LineSplit()
+		metaKey := lineSplit[2]
+		metaValue := lineSplit[3]
+		if metaKey == "interpreter" {
+			obj.interpreter = metaValue
+		}
+	}
+
+	return nil
 }
 
 func (obj *InterpreterProcessor) ProcessEnd() error {
-	return obj.metaProcessor.ProcessEnd()
+	return nil
 }
 
 func (obj *InterpreterProcessor) IsProcessCompletedEarly() bool {
-	return obj.Interpreter() != ""
+	return obj.isOverLine0 || obj.Interpreter() != ""
 }

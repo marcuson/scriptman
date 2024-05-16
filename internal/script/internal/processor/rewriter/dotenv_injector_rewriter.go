@@ -1,7 +1,6 @@
 package rewriter
 
 import (
-	"fmt"
 	"io"
 	"marcuson/scriptman/internal/interpreter"
 	scan "marcuson/scriptman/internal/script/internal/scan"
@@ -20,9 +19,9 @@ func NewDotenvInjectorRewriter(envFileReader io.Reader, interpreter string) *Dot
 }
 
 func (obj *DotenvInjectorRewriter) RewriteBeforeAll() (string, error) {
-	inter, interFound := interpreter.GetInterpreterInfo(obj.interpreter)
-	if !interFound {
-		return "", fmt.Errorf("interpreter '%s' not supported", obj.interpreter)
+	inter, err := interpreter.GetInterpreterInfo(obj.interpreter)
+	if err != nil {
+		return "", err
 	}
 
 	envMap, err := godotenv.Parse(obj.envFileReader)

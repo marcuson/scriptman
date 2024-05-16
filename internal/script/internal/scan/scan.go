@@ -2,13 +2,17 @@ package scan
 
 import (
 	"bufio"
+	"fmt"
 	"io"
+	"marcuson/scriptman/internal/interpreter"
 	"regexp"
+	"slices"
 	"strings"
 )
 
 var (
-	reSplitLine *regexp.Regexp = regexp.MustCompile(`\s`)
+	RE_SPLIT_LINE                     *regexp.Regexp = regexp.MustCompile(`\s`)
+	VALID_FIRST_LINE_COMMENT_STARTERS                = []string{"#", "//"}
 )
 
 type LineScript struct {
@@ -22,12 +26,15 @@ type LineScript struct {
 }
 
 func (obj *LineScript) LineSplit() []string {
-	return reSplitLine.Split(obj.Text, -1)
+	return RE_SPLIT_LINE.Split(obj.Text, -1)
 }
 
 type Scanner struct {
-	scanner bufio.Scanner
-	_line   LineScript
+	scanner        bufio.Scanner
+	interpreter    string
+	commentStarter string
+	scriptErr      error
+	_line          LineScript
 }
 
 func NewScanner(r io.Reader) *Scanner {
@@ -38,7 +45,22 @@ func NewScanner(r io.Reader) *Scanner {
 }
 
 func (obj *Scanner) Err() error {
+	if obj.scriptErr != nil {
+		return obj.scriptErr
+	}
 	return obj.scanner.Err()
+}
+
+func (obj *Scanner) SetInterpreter(inter string) {
+	obj.interpreter = inter
+	interInfo, err := interpreter.GetInterpreterInfo(inter)
+	if err == nil {
+		obj.commentStarter = interInfo.GetCommentStarter()
+	}
+}
+
+func (obj *Scanner) Interpreter() string {
+	return obj.interpreter
 }
 
 func (obj *Scanner) Scan() bool {
@@ -49,12 +71,24 @@ func (obj *Scanner) Scan() bool {
 
 	obj._line.LineIndex += 1
 	obj._line.Text = obj.scanner.Text()
+
 	lineSplit := obj._line.LineSplit()
 
 	obj._line.IsEmpty = len(lineSplit) <= 0 || lineSplit[0] == ""
-	obj._line.IsShebang = strings.HasPrefix(lineSplit[0], "#!")
-	obj._line.IsComment = strings.HasPrefix(lineSplit[0], "#")
-	obj._line.IsMetadata = len(lineSplit) >= 2 && lineSplit[0] == "#" && lineSplit[1] == "@scriptman"
+	obj._line.IsShebang = obj._line.LineIndex == 0 && strings.HasPrefix(lineSplit[0], "#!")
+
+	switch {
+	case obj._line.LineIndex == 0:
+		obj._line.IsComment = slices.ContainsFunc(VALID_FIRST_LINE_COMMENT_STARTERS,
+			func(s string) bool { return strings.HasPrefix(lineSplit[0], s) })
+	case obj._line.LineIndex > 0 && obj.commentStarter == "":
+		obj.scriptErr = fmt.Errorf("scan second line or more without interpreter set")
+		return false
+	default:
+		obj._line.IsComment = strings.HasPrefix(lineSplit[0], obj.commentStarter)
+	}
+
+	obj._line.IsMetadata = len(lineSplit) >= 2 && obj._line.IsComment && lineSplit[1] == "@scriptman"
 
 	return isScanOk
 }

@@ -7,6 +7,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.6.1
 	github.com/fluentassert/verify v1.1.0
 	github.com/joho/godotenv v1.5.1
+	github.com/prashantv/gostub v1.1.0
 	github.com/stretchr/testify v1.8.1
 	github.com/urfave/cli/v2 v2.27.1
 	go.uber.org/zap v1.27.0

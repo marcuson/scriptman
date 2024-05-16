@@ -32,4 +32,5 @@ func TestHandlerPassthroughOk(t *testing.T) {
 
 	err = handler.Handle()
 	verify.NoError(err).Require(t)
+	verify.String(handler.Interpreter()).Equal("bash").Require(t)
 }

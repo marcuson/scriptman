@@ -205,9 +205,9 @@ func Getargs(idOrPath string, out string) error {
 		return err
 	}
 
-	interInfo, isInterSupported := interpreter.GetInterpreterInfo(inter)
-	if !isInterSupported {
-		return fmt.Errorf("unsupported interpreter %s", inter)
+	interInfo, err := interpreter.GetInterpreterInfo(inter)
+	if err != nil {
+		return err
 	}
 
 	getargsAugmenter := rewriter.NewGetargsInjectorRewriter()

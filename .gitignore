@@ -16,6 +16,7 @@
 
 /.task
 /_build
+/_test
 *.wixobj
 *.wixpdb
 *.msi

@@ -18,7 +18,7 @@ func TestDotenvInjectorRewriterBashOk(t *testing.T) {
 
 	result, err := rewriter.RewriteBeforeAll()
 	verify.NoError(err).Require(t)
-	verify.String(result).Equal("export ENVPROP1=env1\nexport ENVPROP2=env2").Assert(t)
+	verify.String(result).Equal("# SCRIPTMAN - LOADED ENV - START\nexport ENVPROP1=\"env1\"\nexport ENVPROP2=\"env2\"\n# SCRIPTMAN - LOADED ENV - END\n").Assert(t)
 
 	result, err = rewriter.RewriteLine(&scan.LineScript{
 		Text:       "# @scriptman sec:start run",
