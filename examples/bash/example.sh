@@ -2,6 +2,7 @@
 
 # @sman namespace marcex
 # @sman name exbash
+# @sman version 0.0.1
 
 echo "common code before"
 

@@ -26,6 +26,7 @@ func NewScriptSection() *ScriptSection {
 type ScriptMetadata struct {
 	Namespace   string
 	Name        string
+	Version     string
 	Interpreter string
 	Ext         string
 

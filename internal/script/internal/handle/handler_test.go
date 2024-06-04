@@ -27,7 +27,7 @@ func TestHandlerPassthroughOk(t *testing.T) {
 	mockProc.EXPECT().
 		ProcessLine(mock.AnythingOfType("*scan.LineScript")).
 		Return(nil).
-		Times(6)
+		Times(7)
 	handler := NewHandler(file, mockProc)
 
 	err = handler.Handle()

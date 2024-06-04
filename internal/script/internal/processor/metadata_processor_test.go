@@ -71,6 +71,27 @@ func TestMetadataNameOk(t *testing.T) {
 	verify.String(meta.Name).Equal("meta_ok_001").Assert(t)
 }
 
+func TestMetadataVersionOk(t *testing.T) {
+	processor := NewMetadataProcessor("")
+
+	err := processor.ProcessStart()
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessLine(&scan.LineScript{
+		Text:       "# @scriptman version 1.0.0",
+		LineIndex:  4,
+		IsMetadata: true,
+	})
+	verify.NoError(err).Require(t)
+
+	err = processor.ProcessEnd()
+	verify.NoError(err).Require(t)
+
+	meta := processor.Metadata()
+	verify.NoError(err).Require(t)
+	verify.String(meta.Version).Equal("1.0.0").Assert(t)
+}
+
 func TestMetadataSectionOk(t *testing.T) {
 	processor := NewMetadataProcessor("")
 

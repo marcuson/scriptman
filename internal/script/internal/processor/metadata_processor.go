@@ -89,6 +89,8 @@ func (obj *MetadataProcessor) parseMetadata(line *scan.LineScript) error {
 		obj._meta.Namespace = metaValue
 	case "name":
 		obj._meta.Name = metaValue
+	case "version":
+		obj._meta.Version = metaValue
 	case "asset":
 		obj._meta.Assets = append(obj._meta.Assets, metaValue)
 	case "getargs-tpl":
