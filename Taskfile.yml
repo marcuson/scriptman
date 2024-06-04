@@ -19,45 +19,62 @@ tasks:
     generates:
       - _build/debug_bin
 
-  build-linux:
-    desc: Production build for Linux.
+  build-linux-x64:
+    desc: Production build for Linux (x64).
     summary: |
-      Production build for Linux.
+      Production build for Linux (x64).
     cmds:
       - >
         GOOS=linux GOARCH=amd64 go build
         -gcflags="all=-N -l"
         -ldflags="-X marcuson/scriptman/internal/cliapp.Version={{.SCRIPTMAN_VERSION}} -s -w"
-        -o ./_build/linux/sman ./cmd/scriptman
+        -o ./_build/linux-x64/sman ./cmd/scriptman
     sources:
       - cmd/**/*.go
       - internal/**/*.go
     generates:
-      - _build/linux/sman
+      - _build/linux-x64/sman
 
-  build-windows:
-    desc: Production build for Windows.
+  build-linux-arm:
+    desc: Production build for Linux (arm).
     summary: |
-      Production build for Windows.
+      Production build for Linux (arm).
+    cmds:
+      - >
+        GOOS=linux GOARCH=arm go build
+        -gcflags="all=-N -l"
+        -ldflags="-X marcuson/scriptman/internal/cliapp.Version={{.SCRIPTMAN_VERSION}} -s -w"
+        -o ./_build/linux-arm/sman ./cmd/scriptman
+    sources:
+      - cmd/**/*.go
+      - internal/**/*.go
+    generates:
+      - _build/linux-arm/sman
+
+  build-windows-x64:
+    desc: Production build for Windows (x64).
+    summary: |
+      Production build for Windows (x64).
     cmds:
       - >
         GOOS=windows GOARCH=amd64 go build
         -gcflags="all=-N -l"
         -ldflags="-X marcuson/scriptman/internal/cliapp.Version={{.SCRIPTMAN_VERSION}} -s -w"
-        -o ./_build/windows/sman ./cmd/scriptman
+        -o ./_build/windows-x64/sman ./cmd/scriptman
     sources:
       - cmd/**/*.go
       - internal/**/*.go
     generates:
-      - _build/windows/sman
+      - _build/windows-x64/sman
 
   build-all:
     desc: Production build for all supported platforms.
     summary: |
       Production build for all supported platforms.
     cmds:
-      - task: build-linux
-      - task: build-windows
+      - task: build-linux-x64
+      - task: build-linux-arm
+      - task: build-windows-x64
 
   clean:
     desc: Clean temp artifacts.
