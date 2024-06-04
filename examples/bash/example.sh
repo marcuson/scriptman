@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 
-# @scriptman namespace marcex
-# @scriptman name exbash
+# @sman namespace marcex
+# @sman name exbash
 
 echo "common code before"
 
-# @scriptman sec:start getargs
+# @sman sec:start getargs
 echo -n 'set NEWENV value: '
 read NEWENV
 echo "getargs called, NEWENV set to $NEWENV"
-# @scriptman sec:end getargs
+# @sman sec:end getargs
 
 echo "common code between"
 
-# @scriptman sec:start run
+# @sman sec:start run
 echo "run called, NEWENV is: $NEWENV"
-# @scriptman sec:end run
+# @sman sec:end run
 
 echo "common code after"

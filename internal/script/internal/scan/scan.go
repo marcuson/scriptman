@@ -13,6 +13,7 @@ import (
 var (
 	RE_SPLIT_LINE                     *regexp.Regexp = regexp.MustCompile(`\s`)
 	VALID_FIRST_LINE_COMMENT_STARTERS                = []string{"#", "//"}
+	VALID_METADATA_STARTERS                          = []string{"@scriptman", "@sman"}
 )
 
 type LineScript struct {
@@ -88,7 +89,8 @@ func (obj *Scanner) Scan() bool {
 		obj._line.IsComment = strings.HasPrefix(lineSplit[0], obj.commentStarter)
 	}
 
-	obj._line.IsMetadata = len(lineSplit) >= 2 && obj._line.IsComment && lineSplit[1] == "@scriptman"
+	obj._line.IsMetadata = len(lineSplit) >= 2 && obj._line.IsComment &&
+		slices.Index(VALID_METADATA_STARTERS, lineSplit[1]) >= 0
 
 	return isScanOk
 }
