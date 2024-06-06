@@ -16,7 +16,7 @@ jobs:
     steps:
     - name: Check env
       run: |
-        echo "Github repo: $env:GITHUB_REPOSITORY"
+        echo "Github repo: $GITHUB_REPOSITORY"
           
     - name: Checkout
       uses: actions/checkout@v4
