@@ -1,0 +1,15 @@
+{
+  "name": "scriptman-release",
+  "version": "0.0.0",
+  "description": "Scriptman release files - using semantic-release.",
+  "scripts": {
+    "release": "semantic-release"
+  },
+  "author": "Leonardo Marcucci <marcuson.nn90@gmail.com>",
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "semantic-release": "^24.0.0"
+  }
+}

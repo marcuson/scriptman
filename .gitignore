@@ -20,3 +20,6 @@
 *.wixobj
 *.wixpdb
 *.msi
+
+# Semantic-release dir
+node_modules

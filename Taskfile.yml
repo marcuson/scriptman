@@ -11,7 +11,7 @@ tasks:
       - >
         go build
         -gcflags="all=-N -l"
-        -ldflags="-X marcuson/scriptman/internal/cliapp.Version={{.SCRIPTMAN_VERSION}}"
+        -ldflags='-X marcuson/scriptman/internal/cliapp.Version={{.SCRIPTMAN_VERSION  | default "X.Y.Z"}}'
         -o ./_build/debug_bin ./cmd/scriptman
     sources:
       - cmd/**/*.go
@@ -19,62 +19,33 @@ tasks:
     generates:
       - _build/debug_bin
 
-  build-linux-x64:
-    desc: Production build for Linux (x64).
+  build-*-*:
+    vars:
+      SCRIPTMAN_OS: '{{index .MATCH 0}}'
+      SCRIPTMAN_ARCH: '{{index .MATCH 1}}'
+    desc: Production build. See summary for more info.
     summary: |
-      Production build for Linux (x64).
+      Production build. First wildcard is one of supported GOOS options. Second wildcard is one of supported GOARCH options.
     cmds:
       - >
-        GOOS=linux GOARCH=amd64 go build
+        GOOS={{.SCRIPTMAN_OS}} GOARCH={{.SCRIPTMAN_ARCH}} go build
         -gcflags="all=-N -l"
-        -ldflags="-X marcuson/scriptman/internal/cliapp.Version={{.SCRIPTMAN_VERSION}} -s -w"
-        -o ./_build/linux-x64/sman ./cmd/scriptman
+        -ldflags="-X marcuson/scriptman/internal/cliapp.Version={{.SCRIPTMAN_VERSION  | default "X.Y.Z"}} -s -w"
+        -o ./_build/dist/sman-{{.SCRIPTMAN_OS}}-{{.SCRIPTMAN_ARCH}} ./cmd/scriptman
     sources:
       - cmd/**/*.go
       - internal/**/*.go
     generates:
-      - _build/linux-x64/sman
-
-  build-linux-arm:
-    desc: Production build for Linux (arm).
-    summary: |
-      Production build for Linux (arm).
-    cmds:
-      - >
-        GOOS=linux GOARCH=arm go build
-        -gcflags="all=-N -l"
-        -ldflags="-X marcuson/scriptman/internal/cliapp.Version={{.SCRIPTMAN_VERSION}} -s -w"
-        -o ./_build/linux-arm/sman ./cmd/scriptman
-    sources:
-      - cmd/**/*.go
-      - internal/**/*.go
-    generates:
-      - _build/linux-arm/sman
-
-  build-windows-x64:
-    desc: Production build for Windows (x64).
-    summary: |
-      Production build for Windows (x64).
-    cmds:
-      - >
-        GOOS=windows GOARCH=amd64 go build
-        -gcflags="all=-N -l"
-        -ldflags="-X marcuson/scriptman/internal/cliapp.Version={{.SCRIPTMAN_VERSION}} -s -w"
-        -o ./_build/windows-x64/sman ./cmd/scriptman
-    sources:
-      - cmd/**/*.go
-      - internal/**/*.go
-    generates:
-      - _build/windows-x64/sman
+      - _build/dist/sman-{{.SCRIPTMAN_OS}}-{{.SCRIPTMAN_ARCH}}
 
   build-all:
     desc: Production build for all supported platforms.
     summary: |
       Production build for all supported platforms.
-    cmds:
-      - task: build-linux-x64
-      - task: build-linux-arm
-      - task: build-windows-x64
+    deps:
+      - build-linux-amd64
+      - build-linux-arm
+      - build-windows-amd64
 
   clean:
     desc: Clean temp artifacts.
@@ -87,8 +58,6 @@ tasks:
     desc: Run app on current platform.
     summary: |
       Run app on current platform.
-    vars:
-      SCRIPTMAN_VERSION: '{{.SCRIPTMAN_VERSION | default "X.Y.Z"}}'
     cmds:
       - go run ./cmd/scriptman --help
 
@@ -98,7 +67,7 @@ tasks:
       Set version for next build.
     cmds:
       - >
-        go run ./scripts/set-version {{.VER}}
+        go run ./scripts/set-version {{.VER | default "X.Y.Z"}}
 
   generate:
     desc: Automatically generate support files based on directives.
