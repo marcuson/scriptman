@@ -36,6 +36,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
-        repository-url: https://git:${{ secrets.GH_TOKEN }}@github.com/${{ env.GITHUB_REPOSITORY }}.git
+        repository-url: https://git:${{ env.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         additional-packages: |
           ["@semantic-release/changelog", "@semantic-release/exec", "@semantic-release/git"]
