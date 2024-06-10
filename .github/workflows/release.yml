@@ -8,34 +8,52 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-
+    
 jobs:
   release-all:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
     
-    steps:
-    - name: Check env
-      run: |
-        echo "Github repo: $GITHUB_REPOSITORY"
-          
+    steps:          
     - name: Checkout
       uses: actions/checkout@v4
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
-        go-version: '1.22'
+        go-version-file: 'go.mod'
+        cache-dependency-path: 'go.sum'
 
     - name: Set up Taskfile
-      uses: rnorton5432/setup-task@v1
+      uses: arduino/setup-task@v2
       with:
-        task-version: 3.37.2
-          
+        task-version: '3.x'
+
+    - name: Setup Node.js environment (for semantic-release)
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: npm
+        cache-dependency-path: package-lock.json
+
+    - name: Install semantic-release dependencies
+      run: npm ci
+
     - name: Release
-      uses: codfish/semantic-release-action@v3
-      # env:
-      #   GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      with:
-        # repository-url: https://git:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
-        additional-packages: |
-          ["@semantic-release/changelog", "@semantic-release/exec", "@semantic-release/git"]
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # $env:giturl = 'https://git:' + $env:GITHUB_TOKEN + '@github.com/' + $env:GITHUB_REPOSITORY + '.git'
+        # git remote set-url origin $env:giturl
+        npm run release
+          
+    # - name: Publish release
+    #   uses: Hs1r1us/Release-AIO@v2.0.0
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   with:
+    #     tag_name: "inherit"
+    #     repo: "marcuson/lotto-helper-releases"
