@@ -1,6 +1,12 @@
 # Scriptman - a cross-platform script manager
 
-## Dev requirements
+## Installation and usage
+
+See the [docs](https://marcuson.github.io/scriptman).
+
+## Development
+
+### Dev requirements
 
 Dev tools you must install manually:
 
@@ -8,7 +14,7 @@ Dev tools you must install manually:
 - Go 1.22+
 - go-task (check [here](https://taskfile.dev/#/installation?id=package-managers) for installation)
 
-## How to debug
+### How to debug
 
 - Install the recommended VSCode extensions
 - Edit ".vscode/launch.json" to suit your needs
