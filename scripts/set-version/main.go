@@ -9,12 +9,12 @@ func main() {
 	ver := os.Args[1]
 	envData := "SCRIPTMAN_VERSION=" + ver
 
-	err := os.MkdirAll("_build", 0644)
+	err := os.MkdirAll("_build", 0777)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = os.WriteFile("_build/build.env", []byte(envData), 0644)
+	err = os.WriteFile("_build/build.env", []byte(envData), 0777)
 	if err != nil {
 		log.Fatal(err)
 	}

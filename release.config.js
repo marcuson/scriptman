@@ -1,9 +1,9 @@
 const isWin = process.platform === "win32";
 const isCI = process.env.CI == "true";
-const isGHOk = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+const isGHOk = !!(process.env.GH_TOKEN || process.env.GITHUB_TOKEN);
 const changelogName = `docs/CHANGELOG.md`;
 
-const ref = process.env.BRANCH_NAME;
+const ref = process.env.GITHUB_REF;
 const branch = ref ? ref.split("/").pop() : "_none_";
 
 console.log("OS:");
