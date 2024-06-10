@@ -30,7 +30,7 @@ jobs:
     - name: Set up Taskfile
       uses: arduino/setup-task@v2
       with:
-        task-version: '3.x'
+        version: '3.x'
 
     - name: Setup Node.js environment (for semantic-release)
       uses: actions/setup-node@v4
@@ -46,14 +46,4 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # $env:giturl = 'https://git:' + $env:GITHUB_TOKEN + '@github.com/' + $env:GITHUB_REPOSITORY + '.git'
-        # git remote set-url origin $env:giturl
         npm run release
-          
-    # - name: Publish release
-    #   uses: Hs1r1us/Release-AIO@v2.0.0
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   with:
-    #     tag_name: "inherit"
-    #     repo: "marcuson/lotto-helper-releases"
