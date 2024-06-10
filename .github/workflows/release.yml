@@ -30,11 +30,12 @@ jobs:
       uses: rnorton5432/setup-task@v1
       with:
         task-version: 3.37.2
-
+          
     - name: Release
       uses: codfish/semantic-release-action@v3
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
+        repository-url: https://git:${{ secrets.GH_TOKEN }}@github.com/${{ env.GITHUB_REPOSITORY }}.git
         additional-packages: |
           ["@semantic-release/changelog", "@semantic-release/exec", "@semantic-release/git"]
