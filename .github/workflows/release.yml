@@ -36,7 +36,5 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
-        additional-packages:
-        - "@semantic-release/changelog"
-        - "@semantic-release/exec"
-        - "@semantic-release/git"
+        additional-packages: |
+          ["@semantic-release/changelog", "@semantic-release/exec", "@semantic-release/git"]
