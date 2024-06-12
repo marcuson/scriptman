@@ -33,6 +33,15 @@ func InitCli() *cli.App {
 		cli.AppHelpTemplate,
 	)
 
+	app.Flags = []cli.Flag{
+		&cli.BoolFlag{
+			Name:    "preserve-user",
+			Aliases: []string{"p"},
+			Usage: "If Scriptman is run with sudo and this flag is set to true, all operations " +
+				"will be performed on the data dirs of the user which invoked the sudo command. " +
+				"If set to false, operations will be performed on root user's data dirs.",
+		},
+	}
 	app.Commands = getCmds()
 
 	return app

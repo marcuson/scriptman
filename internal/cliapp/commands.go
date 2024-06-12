@@ -5,9 +5,50 @@ import (
 	"marcuson/scriptman/internal/config"
 	"marcuson/scriptman/internal/script"
 	"marcuson/scriptman/internal/utils/codeext"
+	"os"
+	"os/user"
 
+	"github.com/adrg/xdg"
 	"github.com/urfave/cli/v2"
 )
+
+func fixXdgWhenSudo(cCtx *cli.Context) error {
+	shouldPreserveUser := cCtx.Bool("preserve-user")
+	if !shouldPreserveUser {
+		return nil
+	}
+
+	sudoUser := os.Getenv("SUDO_USER")
+	if sudoUser == "" {
+		return nil
+	}
+
+	u, err := user.Lookup(sudoUser)
+	if err != nil {
+		return err
+	}
+
+	err = os.Setenv("HOME", u.HomeDir)
+	if err != nil {
+		return err
+	}
+
+	xdg.Reload()
+	return nil
+}
+
+func createCommand(act cli.ActionFunc) cli.ActionFunc {
+	return func(cCtx *cli.Context) error {
+		// Handle global options
+		err := fixXdgWhenSudo(cCtx)
+		if err != nil {
+			return err
+		}
+
+		// Run specific actions for command
+		return act(cCtx)
+	}
+}
 
 func installCmd(cCtx *cli.Context) error {
 	scriptPath := cCtx.Args().Get(0)
@@ -71,7 +112,7 @@ func getCmds() []*cli.Command {
 			Name:    "config",
 			Aliases: []string{"c"},
 			Usage:   "Show scriptman config.",
-			Action:  configCmd,
+			Action:  createCommand(configCmd),
 		},
 		{
 			Name:      "install",
@@ -79,7 +120,7 @@ func getCmds() []*cli.Command {
 			Usage:     "Install a script from filesystem (given its path).",
 			Args:      true,
 			ArgsUsage: "<path>",
-			Action:    installCmd,
+			Action:    createCommand(installCmd),
 		},
 		{
 			Name:      "uninstall",
@@ -87,13 +128,13 @@ func getCmds() []*cli.Command {
 			Usage:     "Uninstall a previously installed script (given its id).",
 			Args:      true,
 			ArgsUsage: "<id>",
-			Action:    uninstallCmd,
+			Action:    createCommand(uninstallCmd),
 		},
 		{
 			Name:    "list",
 			Usage:   "List installed scripts.",
 			Aliases: []string{"ls"},
-			Action:  listCmd,
+			Action:  createCommand(listCmd),
 		},
 		{
 			Name: "run",
@@ -113,7 +154,7 @@ func getCmds() []*cli.Command {
 			},
 			Args:      true,
 			ArgsUsage: "<script id or path>",
-			Action:    runCmd,
+			Action:    createCommand(runCmd),
 		},
 		{
 			Name: "getargs",
@@ -128,7 +169,7 @@ func getCmds() []*cli.Command {
 			},
 			Args:      true,
 			ArgsUsage: "<script id or path>",
-			Action:    getargsCmd,
+			Action:    createCommand(getargsCmd),
 		},
 	}
 
