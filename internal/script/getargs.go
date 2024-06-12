@@ -222,7 +222,7 @@ func Getargs(idOrPath string, out string) error {
 		PostRun: getargsPostRun,
 	}
 
-	ctx, err := run.RunWithHooks(idOrPath, hooks, getargsAugmenter, secRewriter)
+	ctx, err := run.RunWithHooks(scriptPath, hooks, getargsAugmenter, secRewriter)
 	if err != nil {
 		return err
 	}
